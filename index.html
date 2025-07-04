@@ -55,11 +55,6 @@
             margin-bottom: 5px;
         }
         
-        .header p {
-            opacity: 0.9;
-            font-size: 12px;
-        }
-        
         .nav {
             display: flex;
             flex-direction: column;
@@ -299,279 +294,283 @@
         
         <div class="main-content">
             <div class="content">
-            <!-- Setup Section -->
-            <div id="setup" class="section">
-                <div class="setup-form">
-                    <h3>🔧 Database Connection</h3>
-                    <p style="font-size: 14px; color: #856404; margin-bottom: 12px;">
-                        Enter your Supabase credentials once to connect to your garden database:
-                    </p>
-                </div>
-                
-                <div class="form-group">
-                    <label for="supabaseUrl">Supabase URL</label>
-                    <input type="url" id="supabaseUrl" placeholder="https://your-project.supabase.co" 
-                           value="https://gztgrmgspbaurpyvrweq.supabase.co">
-                </div>
-                
-                <div class="form-group">
-                    <label for="supabaseKey">API Key</label>
-                    <input type="password" id="supabaseKey" placeholder="Your anon/public key">
-                </div>
-                
-                <button class="btn" onclick="saveCredentials()">💾 Save & Test Connection</button>
-                
-                <div id="setupResult"></div>
-            </div>
-            
-            <!-- Add Plant Section -->
-            <div id="add" class="section active">
-                <h2 style="margin-bottom: 20px; color: #333;">🌱 Add New Plant</h2>
-                
-                <div class="form-group">
-                    <label for="plantName">Plant Name</label>
-                    <input type="text" id="plantName" placeholder="e.g., Tomato, Basil, Sunflower">
-                </div>
-                
-                <div class="form-group">
-                    <label for="scientificName">Scientific Name (optional)</label>
-                    <input type="text" id="scientificName" placeholder="e.g., Solanum lycopersicum">
-                </div>
-                
-                <div class="form-group">
-                    <label for="plantType">Type</label>
-                    <select id="plantType">
-                        <option value="">Select type...</option>
-                        <option value="vegetable">Vegetable</option>
-                        <option value="herb">Herb</option>
-                        <option value="flower">Flower</option>
-                        <option value="fruit">Fruit</option>
-                        <option value="tree">Tree</option>
-                        <option value="shrub">Shrub</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="lifeCycle">Life Cycle</label>
-                    <select id="lifeCycle">
-                        <option value="">Select life cycle...</option>
-                        <option value="annual">Annual (lives one year)</option>
-                        <option value="biennial">Biennial (lives two years)</option>
-                        <option value="perennial">Perennial (lives many years)</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="isEdible" style="width: auto; margin-right: 8px;">
-                        This plant is edible
-                    </label>
-                </div>
-                
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="isFlowering" style="width: auto; margin-right: 8px;">
-                        This plant flowers
-                    </label>
-                </div>
-                
-                <button class="btn" onclick="addPlant()">🌱 Add Plant</button>
-                
-                <div id="addResult"></div>
-            </div>
-            
-            <!-- Varieties Section -->
-            <div id="varieties" class="section">
-                <h2 style="margin-bottom: 20px; color: #333;">🌿 Plant Varieties</h2>
-                
-                <div class="form-group">
-                    <label for="varietyPlant">Select Plant</label>
-                    <select id="varietyPlant" onchange="loadVarietiesForPlant()">
-                        <option value="">Choose a plant...</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="varietyName">Variety Name</label>
-                    <input type="text" id="varietyName" placeholder="e.g., Cherokee Purple, Genovese, Brandywine">
-                </div>
-                
-                <div class="form-group">
-                    <label for="varietyScientific">Scientific Name (optional)</label>
-                    <input type="text" id="varietyScientific" placeholder="e.g., Solanum lycopersicum 'Cherokee Purple'">
-                </div>
-                
-                <button class="btn" onclick="addVariety()">🌿 Add Variety</button>
-                
-                <div id="varietyResult"></div>
-                
-                <div id="varietiesList" style="margin-top: 20px;"></div>
-            </div>
-            
-            <!-- Sowing Section -->
-            <div id="sow" class="section">
-                <h2 style="margin-bottom: 20px; color: #333;">📝 Record Sowing</h2>
-                
-                <div class="quick-actions">
-                    <button class="quick-btn" onclick="setTodayDate()">📅 Today</button>
-                    <button class="quick-btn" onclick="setYesterdayDate()">📅 Yesterday</button>
-                </div>
-                
-                <div class="form-group">
-                    <label for="sowingPlant">Plant</label>
-                    <select id="sowingPlant">
-                        <option value="">Select plant...</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="sowingVariety">Variety (optional)</label>
-                    <select id="sowingVariety">
-                        <option value="">Select variety...</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="sowingDate">Sowing Date</label>
-                    <input type="date" id="sowingDate">
-                </div>
-                
-                <div class="form-group">
-                    <label for="sowingMethod">Method</label>
-                    <select id="sowingMethod">
-                        <option value="">Select method...</option>
-                        <option value="direct_sow">Direct Sow</option>
-                        <option value="transplant">Transplant</option>
-                        <option value="indoor">Indoor Start</option>
-                        <option value="winter_sow">Winter Sowing</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="sowingNotes">Notes (optional)</label>
-                    <textarea id="sowingNotes" rows="3" placeholder="Location, conditions, observations..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="winterSowing" style="width: auto; margin-right: 8px;">
-                        Winter sowing
-                    </label>
-                </div>
-                
-                <button class="btn" onclick="recordSowing()">📝 Record Sowing</button>
-                
-                <div id="sowResult"></div>
-            </div>
-            
-            <!-- Sowing Calendar Section -->
-            <div id="calendar" class="section">
-                <h2 style="margin-bottom: 20px; color: #333;">📅 Sowing Calendar</h2>
-                
-                <div class="setup-form">
-                    <h3>🌡️ Quick Frost Date Setup</h3>
-                    <p style="font-size: 14px; color: #856404; margin-bottom: 12px;">
-                        Enter your area's average last frost date:
-                    </p>
-                    <div style="display: flex; gap: 10px; align-items: end;">
-                        <div style="flex: 1;">
-                            <input type="date" id="quickFrostDate" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 8px;">
-                        </div>
-                        <button onclick="calculateSowingDates()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; white-space: nowrap;">Calculate</button>
+                <!-- Setup Section -->
+                <div id="setup" class="section">
+                    <div class="setup-form">
+                        <h3>🔧 Database Connection</h3>
+                        <p style="font-size: 14px; color: #856404; margin-bottom: 12px;">
+                            Enter your Supabase credentials once to connect to your garden database:
+                        </p>
                     </div>
-                </div>
-                
-                <div class="quick-actions">
-                    <button class="quick-btn" onclick="showSampleSeeds()">Show Sample Seeds</button>
-                    <button class="quick-btn" onclick="loadActualSeeds()">My Seeds</button>
-                </div>
-                
-                <div id="calendarList"></div>
-            </div>
-            
-            <!-- Pruning Section -->
-            <div id="pruning" class="section">
-                <h2 style="margin-bottom: 20px; color: #333;">✂️ Pruning Schedule</h2>
-                
-                <div class="quick-actions">
-                    <button class="quick-btn" onclick="loadPruningSchedule('all')">All Plants</button>
-                    <button class="quick-btn" onclick="loadPruningSchedule('needs')">Needs Pruning</button>
-                    <button class="quick-btn" onclick="loadPruningSchedule('thisseason')">This Season</button>
-                    <button class="quick-btn" onclick="showAddPruningForm()">Add Pruning</button>
-                </div>
-                
-                <div id="addPruningForm" class="hidden" style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
-                    <h3 style="margin-bottom: 16px; color: #333;">Add Pruning Schedule</h3>
                     
                     <div class="form-group">
-                        <label for="pruningPlant">Select Plant</label>
-                        <select id="pruningPlant">
+                        <label for="supabaseUrl">Supabase URL</label>
+                        <input type="url" id="supabaseUrl" placeholder="https://your-project.supabase.co" 
+                               value="https://gztgrmgspbaurpyvrweq.supabase.co">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="supabaseKey">API Key</label>
+                        <input type="password" id="supabaseKey" placeholder="Your anon/public key">
+                    </div>
+                    
+                    <button class="btn" onclick="saveCredentials()">💾 Save & Test Connection</button>
+                    
+                    <div id="setupResult"></div>
+                </div>
+                
+                <!-- Add Plant Section -->
+                <div id="add" class="section active">
+                    <h2 style="margin-bottom: 20px; color: #333;">🌱 Add New Plant</h2>
+                    
+                    <div class="form-group">
+                        <label for="plantName">Plant Name</label>
+                        <input type="text" id="plantName" placeholder="e.g., Tomato, Basil, Sunflower">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="scientificName">Scientific Name (optional)</label>
+                        <input type="text" id="scientificName" placeholder="e.g., Solanum lycopersicum">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="plantType">Type</label>
+                        <select id="plantType">
+                            <option value="">Select type...</option>
+                            <option value="vegetable">Vegetable</option>
+                            <option value="herb">Herb</option>
+                            <option value="flower">Flower</option>
+                            <option value="fruit">Fruit</option>
+                            <option value="tree">Tree</option>
+                            <option value="shrub">Shrub</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lifeCycle">Life Cycle</label>
+                        <select id="lifeCycle">
+                            <option value="">Select life cycle...</option>
+                            <option value="Annual">Annual (lives one year)</option>
+                            <option value="Biennial">Biennial (lives two years)</option>
+                            <option value="Perennial">Perennial (lives many years)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="isEdible" style="width: auto; margin-right: 8px;">
+                            This plant is edible
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="isFlowering" style="width: auto; margin-right: 8px;">
+                            This plant flowers
+                        </label>
+                    </div>
+                    
+                    <button class="btn" onclick="addPlant()">🌱 Add Plant</button>
+                    
+                    <div id="addResult"></div>
+                </div>
+                
+                <!-- Varieties Section -->
+                <div id="varieties" class="section">
+                    <h2 style="margin-bottom: 20px; color: #333;">🌿 Plant Varieties</h2>
+                    
+                    <div class="form-group">
+                        <label for="varietyPlant">Select Plant</label>
+                        <select id="varietyPlant" onchange="loadVarietiesForPlant()">
                             <option value="">Choose a plant...</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
-                        <label for="pruningNeeded">
-                            <input type="checkbox" id="pruningNeeded" style="width: auto; margin-right: 8px;" checked>
-                            This plant needs pruning
+                        <label for="varietyName">Variety Name</label>
+                        <input type="text" id="varietyName" placeholder="e.g., Cherokee Purple, Genovese, Brandywine">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="varietyScientific">Scientific Name (optional)</label>
+                        <input type="text" id="varietyScientific" placeholder="e.g., Solanum lycopersicum 'Cherokee Purple'">
+                    </div>
+                    
+                    <button class="btn" onclick="addVariety()">🌿 Add Variety</button>
+                    
+                    <div id="varietyResult"></div>
+                    
+                    <div id="varietiesList" style="margin-top: 20px;"></div>
+                </div>
+                
+                <!-- Sowing Section -->
+                <div id="sow" class="section">
+                    <h2 style="margin-bottom: 20px; color: #333;">📝 Record Sowing</h2>
+                    
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="setTodayDate()">📅 Today</button>
+                        <button class="quick-btn" onclick="setYesterdayDate()">📅 Yesterday</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sowingPlant">Plant</label>
+                        <select id="sowingPlant">
+                            <option value="">Select plant...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sowingVariety">Variety (optional)</label>
+                        <select id="sowingVariety">
+                            <option value="">Select variety...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sowingDate">Sowing Date</label>
+                        <input type="date" id="sowingDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sowingMethod">Method</label>
+                        <select id="sowingMethod">
+                            <option value="">Select method...</option>
+                            <option value="direct_sow">Direct Sow</option>
+                            <option value="transplant">Transplant</option>
+                            <option value="indoor">Indoor Start</option>
+                            <option value="winter_sow">Winter Sowing</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sowingNotes">Notes (optional)</label>
+                        <textarea id="sowingNotes" rows="3" placeholder="Location, conditions, observations..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="winterSowing" style="width: auto; margin-right: 8px;">
+                            Winter sowing
                         </label>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="pruningSeason">Pruning Season</label>
-                        <select id="pruningSeason" onchange="updatePruningDate()">
-                            <option value="">Select season...</option>
-                            <option value="spring">Spring (March-May)</option>
-                            <option value="summer">Summer (June-August)</option>
-                            <option value="fall">Fall (September-November)</option>
-                            <option value="winter">Winter (December-February)</option>
-                        </select>
-                    </div>
+                    <button class="btn" onclick="recordSowing()">📝 Record Sowing</button>
                     
-                    <div class="form-group">
-                        <label for="pruningDate">Suggested Pruning Date</label>
-                        <input type="date" id="pruningDate">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="bloomsOn">Blooms On</label>
-                        <select id="bloomsOn">
-                            <option value="">Select...</option>
-                            <option value="old_wood">Old Wood (prune after flowering)</option>
-                            <option value="new_wood">New Wood (prune in late winter/early spring)</option>
-                            <option value="both">Both Old & New Wood</option>
-                            <option value="non_flowering">Non-flowering plant</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="pruningNotes">Pruning Notes</label>
-                        <textarea id="pruningNotes" rows="3" placeholder="Pruning instructions, tips, observations..."></textarea>
-                    </div>
-                    
-                    <button class="btn" onclick="addPruningSchedule()">✂️ Add Pruning Schedule</button>
-                    <button class="btn btn-secondary" onclick="hideAddPruningForm()">Cancel</button>
-                    
-                    <div id="pruningAddResult"></div>
+                    <div id="sowResult"></div>
                 </div>
                 
-                <div id="pruningList"></div>
-            </div>
-            
-            <!-- View Plants Section -->
-            <div id="view" class="section">
-                <h2 style="margin-bottom: 20px; color: #333;">🌿 My Plants</h2>
-                
-                <div class="quick-actions">
-                    <button class="quick-btn" onclick="loadPlants('all')">All Plants</button>
-                    <button class="quick-btn" onclick="loadPlants('annuals')">Annuals</button>
-                    <button class="quick-btn" onclick="loadPlants('perennials')">Perennials</button>
-                    <button class="quick-btn" onclick="debugLifeCycles()">Debug Life Cycles</button>
+                <!-- Sowing Calendar Section -->
+                <div id="calendar" class="section">
+                    <h2 style="margin-bottom: 20px; color: #333;">📅 Sowing Calendar</h2>
+                    
+                    <div class="setup-form">
+                        <h3>🌡️ Quick Frost Date Setup</h3>
+                        <p style="font-size: 14px; color: #856404; margin-bottom: 12px;">
+                            Enter your area's average last frost date:
+                        </p>
+                        <div style="display: flex; gap: 10px; align-items: end;">
+                            <div style="flex: 1;">
+                                <input type="date" id="quickFrostDate" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 8px;">
+                            </div>
+                            <button onclick="calculateSowingDates()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; white-space: nowrap;">Calculate</button>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="showSampleSeeds()">Show Sample Seeds</button>
+                        <button class="quick-btn" onclick="loadActualSeeds()">My Seeds</button>
+                    </div>
+                    
+                    <div id="calendarList"></div>
                 </div>
                 
-                <button class="btn btn-secondary" onclick="refreshPlants()">🔄 Refresh</button>
+                <!-- Pruning Section -->
+                <div id="pruning" class="section">
+                    <h2 style="margin-bottom: 20px; color: #333;">✂️ Pruning Schedule</h2>
+                    
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="loadPruningSchedule('all')">All Plants</button>
+                        <button class="quick-btn" onclick="loadPruningSchedule('needs')">Needs Pruning</button>
+                        <button class="quick-btn" onclick="loadPruningSchedule('thisseason')">This Season</button>
+                        <button class="quick-btn" onclick="showAddPruningForm()">Add Pruning</button>
+                    </div>
+                    
+                    <div id="addPruningForm" class="hidden" style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 16px; color: #333;">Add Pruning Schedule</h3>
+                        
+                        <div class="form-group">
+                            <label for="pruningPlant">Select Plant</label>
+                            <select id="pruningPlant">
+                                <option value="">Choose a plant...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pruningNeeded">
+                                <input type="checkbox" id="pruningNeeded" style="width: auto; margin-right: 8px;" checked>
+                                This plant needs pruning
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pruningSeason">Pruning Season</label>
+                            <select id="pruningSeason" onchange="updatePruningDate()">
+                                <option value="">Select season...</option>
+                                <option value="spring">Spring (March-May)</option>
+                                <option value="summer">Summer (June-August)</option>
+                                <option value="fall">Fall (September-November)</option>
+                                <option value="winter">Winter (December-February)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pruningDate">Suggested Pruning Date</label>
+                            <input type="date" id="pruningDate">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bloomsOn">Blooms On</label>
+                            <select id="bloomsOn">
+                                <option value="">Select...</option>
+                                <option value="old_wood">Old Wood (prune after flowering)</option>
+                                <option value="new_wood">New Wood (prune in late winter/early spring)</option>
+                                <option value="both">Both Old & New Wood</option>
+                                <option value="non_flowering">Non-flowering plant</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pruningNotes">Pruning Notes</label>
+                            <textarea id="pruningNotes" rows="3" placeholder="Pruning instructions, tips, observations..."></textarea>
+                        </div>
+                        
+                        <button class="btn" onclick="addPruningSchedule()">✂️ Add Pruning Schedule</button>
+                        <button class="btn btn-secondary" onclick="hideAddPruningForm()">Cancel</button>
+                        
+                        <div id="pruningAddResult"></div>
+                    </div>
+                    
+                    <div id="pruningList"></div>
+                </div>
                 
-                <div id="plantsList"></div>
+                <!-- View Plants Section -->
+                <div id="view" class="section">
+                    <h2 style="margin-bottom: 20px; color: #333;">🌿 My Plants</h2>
+                    
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="loadPlants('all')">All Plants</button>
+                        <button class="quick-btn" onclick="loadPlants('annuals')">Annuals</button>
+                        <button class="quick-btn" onclick="loadPlants('perennials')">Perennials</button>
+                        <button class="quick-btn" onclick="loadPlants('biennials')">Biennials</button>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="loadRecentSowings()">Recent Sowings</button>
+                        <button class="quick-btn" onclick="refreshPlants()">🔄 Refresh</button>
+                    </div>
+                    
+                    <div id="plantsList"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -966,6 +965,165 @@
             }
         }
 
+        function calculateSowingDates() {
+            const frostDate = document.getElementById('quickFrostDate').value;
+            
+            if (!frostDate) {
+                showResult('calendarList', 'Please enter a frost date first', 'error');
+                return;
+            }
+            
+            const lastFrost = new Date(frostDate);
+            const today = new Date();
+            
+            // Sample seed data with typical sowing times
+            const commonSeeds = [
+                { name: 'Tomatoes', minWeeks: 6, maxWeeks: 8, type: 'warm season' },
+                { name: 'Peppers', minWeeks: 8, maxWeeks: 10, type: 'warm season' },
+                { name: 'Basil', minWeeks: 6, maxWeeks: 8, type: 'warm season' },
+                { name: 'Lettuce', minWeeks: 4, maxWeeks: 6, type: 'cool season' },
+                { name: 'Spinach', minWeeks: 6, maxWeeks: 8, type: 'cool season' },
+                { name: 'Broccoli', minWeeks: 6, maxWeeks: 8, type: 'cool season' },
+                { name: 'Cucumber', minWeeks: 4, maxWeeks: 6, type: 'warm season' },
+                { name: 'Zucchini', minWeeks: 4, maxWeeks: 6, type: 'warm season' },
+                { name: 'Kale', minWeeks: 6, maxWeeks: 8, type: 'cool season' },
+                { name: 'Herbs (general)', minWeeks: 6, maxWeeks: 8, type: 'warm season' }
+            ];
+            
+            let calendarHtml = '<h3 style="margin-bottom: 16px; color: #333;">📅 Sowing Calendar for ' + formatDate(lastFrost) + ' Frost Date</h3>';
+            
+            commonSeeds.forEach(function(seed) {
+                // Calculate date range
+                const earliestDate = new Date(lastFrost);
+                earliestDate.setDate(earliestDate.getDate() - (seed.maxWeeks * 7));
+                
+                const latestDate = new Date(lastFrost);
+                latestDate.setDate(latestDate.getDate() - (seed.minWeeks * 7));
+                
+                // Determine status
+                let statusColor = '#6c757d';
+                let statusText = '📅 Future';
+                let statusBg = '#e9ecef';
+                
+                const isCurrentlyOptimal = today >= earliestDate && today <= latestDate;
+                const isPast = today > latestDate;
+                
+                if (isCurrentlyOptimal) {
+                    statusColor = '#155724';
+                    statusText = '🌱 Sow Now!';
+                    statusBg = '#d4edda';
+                } else if (isPast) {
+                    statusColor = '#721c24';
+                    statusText = '⏰ Window Passed';
+                    statusBg = '#f8d7da';
+                }
+                
+                const earliestStr = formatDate(earliestDate);
+                const latestStr = formatDate(latestDate);
+                
+                calendarHtml += '<div class="plant-card">';
+                calendarHtml += '<h3>' + seed.name + '</h3>';
+                calendarHtml += '<p style="color: ' + statusColor + '; font-weight: 600; background: ' + statusBg + '; padding: 8px; border-radius: 8px; text-align: center;">' + statusText + '</p>';
+                calendarHtml += '<p>📅 Optimal window: ' + earliestStr + ' - ' + latestStr + '</p>';
+                calendarHtml += '<p>⏱️ ' + seed.minWeeks + '-' + seed.maxWeeks + ' weeks before last frost</p>';
+                calendarHtml += '<div class="badges">';
+                calendarHtml += '<span class="badge">' + (seed.type === 'warm season' ? '🌡️ Warm Season' : '❄️ Cool Season') + '</span>';
+                calendarHtml += '</div>';
+                calendarHtml += '</div>';
+            });
+            
+            document.getElementById('calendarList').innerHTML = calendarHtml;
+        }
+
+        function showSampleSeeds() {
+            // Set a default frost date and calculate
+            const currentYear = new Date().getFullYear();
+            document.getElementById('quickFrostDate').value = currentYear + '-03-21';
+            calculateSowingDates();
+        }
+
+        async function loadActualSeeds() {
+            const frostDate = document.getElementById('quickFrostDate').value;
+            
+            if (!frostDate) {
+                showResult('calendarList', 'Please enter a frost date first', 'error');
+                return;
+            }
+            
+            try {
+                showResult('calendarList', 'Loading your seed data...', 'loading');
+                
+                // Try to get data from indoor_winter_sowing table
+                const sowingData = await makeSupabaseRequest('/indoor_winter_sowing?select=*');
+                
+                if (sowingData.length === 0) {
+                    showResult('calendarList', 'No seed timing data found in your indoor_winter_sowing table. Use "Show Sample Seeds" to see examples, or add data to your indoor_winter_sowing table.', 'error');
+                    return;
+                }
+                
+                // Get plant names
+                const plantIds = sowingData.map(function(s) { return s.plant_id; });
+                const plants = await makeSupabaseRequest('/all_plants?select=*&plant_id=in.(' + plantIds.join(',') + ')');
+                const plantMap = {};
+                plants.forEach(function(p) {
+                    plantMap[p.plant_id] = p;
+                });
+                
+                const lastFrost = new Date(frostDate);
+                const today = new Date();
+                
+                let calendarHtml = '<h3 style="margin-bottom: 16px; color: #333;">📅 Your Seed Calendar</h3>';
+                
+                sowingData.forEach(function(sowing) {
+                    const plant = plantMap[sowing.plant_id];
+                    if (!plant) return;
+                    
+                    // Calculate date range
+                    const earliestDate = new Date(lastFrost);
+                    earliestDate.setDate(earliestDate.getDate() - (sowing.max_weeks_before_frost * 7));
+                    
+                    const latestDate = new Date(lastFrost);
+                    latestDate.setDate(latestDate.getDate() - (sowing.min_weeks_before_frost * 7));
+                    
+                    // Determine status
+                    let statusColor = '#6c757d';
+                    let statusText = '📅 Future';
+                    let statusBg = '#e9ecef';
+                    
+                    const isCurrentlyOptimal = today >= earliestDate && today <= latestDate;
+                    const isPast = today > latestDate;
+                    
+                    if (isCurrentlyOptimal) {
+                        statusColor = '#155724';
+                        statusText = '🌱 Sow Now!';
+                        statusBg = '#d4edda';
+                    } else if (isPast) {
+                        statusColor = '#721c24';
+                        statusText = '⏰ Window Passed';
+                        statusBg = '#f8d7da';
+                    }
+                    
+                    const earliestStr = formatDate(earliestDate);
+                    const latestStr = formatDate(latestDate);
+                    
+                    calendarHtml += '<div class="plant-card">';
+                    calendarHtml += '<h3>' + plant.common_name + '</h3>';
+                    calendarHtml += '<p style="color: ' + statusColor + '; font-weight: 600; background: ' + statusBg + '; padding: 8px; border-radius: 8px; text-align: center;">' + statusText + '</p>';
+                    calendarHtml += '<p>📅 Optimal window: ' + earliestStr + ' - ' + latestStr + '</p>';
+                    calendarHtml += '<p>⏱️ ' + sowing.min_weeks_before_frost + '-' + sowing.max_weeks_before_frost + ' weeks before last frost</p>';
+                    if (sowing.winter_sowing) {
+                        calendarHtml += '<p>❄️ Can be winter sown</p>';
+                    }
+                    calendarHtml += '</div>';
+                });
+                
+                document.getElementById('calendarList').innerHTML = calendarHtml;
+                
+            } catch (error) {
+                showResult('calendarList', '❌ Failed to load seed data: ' + error.message, 'error');
+            }
+        }
+
         function showAddPruningForm() {
             document.getElementById('addPruningForm').classList.remove('hidden');
         }
@@ -1141,23 +1299,27 @@
                 let endpoint = '/all_plants?select=*';
                 
                 if (filter === 'annuals') {
-                    // Get plants where life_cycle is 'annual'
-                    const lifeCycles = await makeSupabaseRequest('/life_cycle?select=lifecycle_id&life_cycle=eq.annual');
+                    const lifeCycles = await makeSupabaseRequest('/life_cycle?select=lifecycle_id&life_cycle=eq.Annual');
                     if (lifeCycles.length > 0) {
                         endpoint += '&life_cycle_id=eq.' + lifeCycles[0].lifecycle_id;
                     } else {
-                        // No annuals found
                         showResult('plantsList', 'No annual plants found. Add some annual plants first!', 'error');
                         return;
                     }
                 } else if (filter === 'perennials') {
-                    // Get plants where life_cycle is 'perennial'
-                    const lifeCycles = await makeSupabaseRequest('/life_cycle?select=lifecycle_id&life_cycle=eq.perennial');
+                    const lifeCycles = await makeSupabaseRequest('/life_cycle?select=lifecycle_id&life_cycle=eq.Perennial');
                     if (lifeCycles.length > 0) {
                         endpoint += '&life_cycle_id=eq.' + lifeCycles[0].lifecycle_id;
                     } else {
-                        // No perennials found
                         showResult('plantsList', 'No perennial plants found. Add some perennial plants first!', 'error');
+                        return;
+                    }
+                } else if (filter === 'biennials') {
+                    const lifeCycles = await makeSupabaseRequest('/life_cycle?select=lifecycle_id&life_cycle=eq.Biennial');
+                    if (lifeCycles.length > 0) {
+                        endpoint += '&life_cycle_id=eq.' + lifeCycles[0].lifecycle_id;
+                    } else {
+                        showResult('plantsList', 'No biennial plants found. Add some biennial plants first!', 'error');
                         return;
                     }
                 }
@@ -1168,6 +1330,7 @@
                     let message = 'No plants found. Add some plants first!';
                     if (filter === 'annuals') message = 'No annual plants found.';
                     if (filter === 'perennials') message = 'No perennial plants found.';
+                    if (filter === 'biennials') message = 'No biennial plants found.';
                     showResult('plantsList', message, 'error');
                     return;
                 }
@@ -1258,221 +1421,16 @@
             document.getElementById('sowingDate').value = yesterday.toISOString().split('T')[0];
         }
 
-        function calculateSowingDates() {
-            const frostDate = document.getElementById('quickFrostDate').value;
-            
-            if (!frostDate) {
-                showResult('calendarList', 'Please enter a frost date first', 'error');
-                return;
-            }
-            
-            const lastFrost = new Date(frostDate);
-            const today = new Date();
-            
-            // Sample seed data with typical sowing times
-            const commonSeeds = [
-                { name: 'Tomatoes', minWeeks: 6, maxWeeks: 8, type: 'warm season' },
-                { name: 'Peppers', minWeeks: 8, maxWeeks: 10, type: 'warm season' },
-                { name: 'Basil', minWeeks: 6, maxWeeks: 8, type: 'warm season' },
-                { name: 'Lettuce', minWeeks: 4, maxWeeks: 6, type: 'cool season' },
-                { name: 'Spinach', minWeeks: 6, maxWeeks: 8, type: 'cool season' },
-                { name: 'Broccoli', minWeeks: 6, maxWeeks: 8, type: 'cool season' },
-                { name: 'Cucumber', minWeeks: 4, maxWeeks: 6, type: 'warm season' },
-                { name: 'Zucchini', minWeeks: 4, maxWeeks: 6, type: 'warm season' },
-                { name: 'Kale', minWeeks: 6, maxWeeks: 8, type: 'cool season' },
-                { name: 'Herbs (general)', minWeeks: 6, maxWeeks: 8, type: 'warm season' }
-            ];
-            
-            let calendarHtml = '<h3 style="margin-bottom: 16px; color: #333;">📅 Sowing Calendar for ' + formatDate(lastFrost) + ' Frost Date</h3>';
-            
-            commonSeeds.forEach(function(seed) {
-                // Calculate date range
-                const earliestDate = new Date(lastFrost);
-                earliestDate.setDate(earliestDate.getDate() - (seed.maxWeeks * 7));
-                
-                const latestDate = new Date(lastFrost);
-                latestDate.setDate(latestDate.getDate() - (seed.minWeeks * 7));
-                
-                // Determine status
-                let statusColor = '#6c757d';
-                let statusText = '📅 Future';
-                let statusBg = '#e9ecef';
-                
-                const isCurrentlyOptimal = today >= earliestDate && today <= latestDate;
-                const isPast = today > latestDate;
-                
-                if (isCurrentlyOptimal) {
-                    statusColor = '#155724';
-                    statusText = '🌱 Sow Now!';
-                    statusBg = '#d4edda';
-                } else if (isPast) {
-                    statusColor = '#721c24';
-                    statusText = '⏰ Window Passed';
-                    statusBg = '#f8d7da';
-                }
-                
-                const earliestStr = formatDate(earliestDate);
-                const latestStr = formatDate(latestDate);
-                
-                calendarHtml += '<div class="plant-card">';
-                calendarHtml += '<h3>' + seed.name + '</h3>';
-                calendarHtml += '<p style="color: ' + statusColor + '; font-weight: 600; background: ' + statusBg + '; padding: 8px; border-radius: 8px; text-align: center;">' + statusText + '</p>';
-                calendarHtml += '<p>📅 Optimal window: ' + earliestStr + ' - ' + latestStr + '</p>';
-                calendarHtml += '<p>⏱️ ' + seed.minWeeks + '-' + seed.maxWeeks + ' weeks before last frost</p>';
-                calendarHtml += '<div class="badges">';
-                calendarHtml += '<span class="badge">' + (seed.type === 'warm season' ? '🌡️ Warm Season' : '❄️ Cool Season') + '</span>';
-                calendarHtml += '</div>';
-                calendarHtml += '</div>';
-            });
-            
-            document.getElementById('calendarList').innerHTML = calendarHtml;
-        }
-
-        function showSampleSeeds() {
-            // Set a default frost date and calculate
-            const currentYear = new Date().getFullYear();
-            document.getElementById('quickFrostDate').value = currentYear + '-03-21';
-            calculateSowingDates();
-        }
-
-        async function loadActualSeeds() {
-            const frostDate = document.getElementById('quickFrostDate').value;
-            
-            if (!frostDate) {
-                showResult('calendarList', 'Please enter a frost date first', 'error');
-                return;
-            }
-            
-            try {
-                showResult('calendarList', 'Loading your seed data...', 'loading');
-                
-                // Try to get data from indoor_winter_sowing table
-                const sowingData = await makeSupabaseRequest('/indoor_winter_sowing?select=*');
-                
-                if (sowingData.length === 0) {
-                    showResult('calendarList', 'No seed timing data found in your indoor_winter_sowing table. Use "Show Sample Seeds" to see examples, or add data to your indoor_winter_sowing table.', 'error');
-                    return;
-                }
-                
-                // Get plant names
-                const plantIds = sowingData.map(function(s) { return s.plant_id; });
-                const plants = await makeSupabaseRequest('/all_plants?select=*&plant_id=in.(' + plantIds.join(',') + ')');
-                const plantMap = {};
-                plants.forEach(function(p) {
-                    plantMap[p.plant_id] = p;
-                });
-                
-                const lastFrost = new Date(frostDate);
-                const today = new Date();
-                
-                let calendarHtml = '<h3 style="margin-bottom: 16px; color: #333;">📅 Your Seed Calendar</h3>';
-                
-                sowingData.forEach(function(sowing) {
-                    const plant = plantMap[sowing.plant_id];
-                    if (!plant) return;
-                    
-                    // Calculate date range
-                    const earliestDate = new Date(lastFrost);
-                    earliestDate.setDate(earliestDate.getDate() - (sowing.max_weeks_before_frost * 7));
-                    
-                    const latestDate = new Date(lastFrost);
-                    latestDate.setDate(latestDate.getDate() - (sowing.min_weeks_before_frost * 7));
-                    
-                    // Determine status
-                    let statusColor = '#6c757d';
-                    let statusText = '📅 Future';
-                    let statusBg = '#e9ecef';
-                    
-                    const isCurrentlyOptimal = today >= earliestDate && today <= latestDate;
-                    const isPast = today > latestDate;
-                    
-                    if (isCurrentlyOptimal) {
-                        statusColor = '#155724';
-                        statusText = '🌱 Sow Now!';
-                        statusBg = '#d4edda';
-                    } else if (isPast) {
-                        statusColor = '#721c24';
-                        statusText = '⏰ Window Passed';
-                        statusBg = '#f8d7da';
-                    }
-                    
-                    const earliestStr = formatDate(earliestDate);
-                    const latestStr = formatDate(latestDate);
-                    
-                    calendarHtml += '<div class="plant-card">';
-                    calendarHtml += '<h3>' + plant.common_name + '</h3>';
-                    calendarHtml += '<p style="color: ' + statusColor + '; font-weight: 600; background: ' + statusBg + '; padding: 8px; border-radius: 8px; text-align: center;">' + statusText + '</p>';
-                    calendarHtml += '<p>📅 Optimal window: ' + earliestStr + ' - ' + latestStr + '</p>';
-                    calendarHtml += '<p>⏱️ ' + sowing.min_weeks_before_frost + '-' + sowing.max_weeks_before_frost + ' weeks before last frost</p>';
-                    if (sowing.winter_sowing) {
-                        calendarHtml += '<p>❄️ Can be winter sown</p>';
-                    }
-                    calendarHtml += '</div>';
-                });
-                
-                document.getElementById('calendarList').innerHTML = calendarHtml;
-                
-            } catch (error) {
-                showResult('calendarList', '❌ Failed to load seed data: ' + error.message, 'error');
-            }
-        }
-
         function showResult(elementId, message, type) {
             const element = document.getElementById(elementId);
             const className = type === 'loading' ? 'result' : 'result ' + type;
             element.innerHTML = '<div class="' + className + '">' + message + '</div>';
         }
 
-        async function debugLifeCycles() {
-            try {
-                showResult('plantsList', 'Debugging life cycles...', 'loading');
-                
-                let debugInfo = '';
-                
-                // Check life_cycle table
-                const lifeCycles = await makeSupabaseRequest('/life_cycle?select=*');
-                debugInfo += '🔍 Life Cycle Table (' + lifeCycles.length + ' records):\n';
-                lifeCycles.forEach(function(lc) {
-                    debugInfo += '  • ' + lc.life_cycle + ' (ID: ' + lc.lifecycle_id + ')\n';
-                });
-                debugInfo += '\n';
-                
-                // Check plants with life cycle info
-                const plants = await makeSupabaseRequest('/all_plants?select=common_name,life_cycle_id&limit=10');
-                debugInfo += '🌱 Plants Sample (' + plants.length + ' shown):\n';
-                plants.forEach(function(plant) {
-                    const lifeCycleStatus = plant.life_cycle_id ? 'HAS life_cycle_id: ' + plant.life_cycle_id : 'NO life_cycle_id';
-                    debugInfo += '  • ' + plant.common_name + ' - ' + lifeCycleStatus + '\n';
-                });
-                debugInfo += '\n';
-                
-                // Check how many plants have each life cycle
-                const plantsWithLifeCycle = await makeSupabaseRequest('/all_plants?select=life_cycle_id&life_cycle_id=not.is.null');
-                debugInfo += '📊 Plants with life cycles: ' + plantsWithLifeCycle.length + ' total\n';
-                
-                // Count by life cycle ID
-                const lifeCycleCounts = {};
-                plantsWithLifeCycle.forEach(function(plant) {
-                    const id = plant.life_cycle_id;
-                    lifeCycleCounts[id] = (lifeCycleCounts[id] || 0) + 1;
-                });
-                
-                debugInfo += '\n📈 Count by Life Cycle ID:\n';
-                for (const id in lifeCycleCounts) {
-                    const matchingLC = lifeCycles.find(function(lc) { return lc.lifecycle_id === id; });
-                    const name = matchingLC ? matchingLC.life_cycle : 'Unknown';
-                    debugInfo += '  • ' + name + ' (ID: ' + id + '): ' + lifeCycleCounts[id] + ' plants\n';
-                }
-                
-                document.getElementById('plantsList').innerHTML = '<pre style="background: #f8f9fa; padding: 16px; border-radius: 8px; font-size: 12px; overflow-x: auto; white-space: pre-wrap;">' + debugInfo + '</pre>';
-                
-            } catch (error) {
-                showResult('plantsList', '❌ Debug failed: ' + error.message, 'error');
-            }
+        function formatDate(date) {
+            const options = { month: 'short', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
         }
-    </script>
-</body>
-</html>
     </script>
 </body>
 </html>
