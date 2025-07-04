@@ -566,7 +566,7 @@
                     <button class="quick-btn" onclick="loadPlants('all')">All Plants</button>
                     <button class="quick-btn" onclick="loadPlants('annuals')">Annuals</button>
                     <button class="quick-btn" onclick="loadPlants('perennials')">Perennials</button>
-                    <button class="quick-btn" onclick="loadRecentSowings()">Recent Sowings</button>
+                    <button class="quick-btn" onclick="debugLifeCycles()">Debug Life Cycles</button>
                 </div>
                 
                 <button class="btn btn-secondary" onclick="refreshPlants()">🔄 Refresh</button>
@@ -1423,9 +1423,52 @@
             element.innerHTML = '<div class="' + className + '">' + message + '</div>';
         }
 
-        function formatDate(date) {
-            const options = { month: 'short', day: 'numeric' };
-            return date.toLocaleDateString('en-US', options);
+        async function debugLifeCycles() {
+            try {
+                showResult('plantsList', 'Debugging life cycles...', 'loading');
+                
+                let debugInfo = '';
+                
+                // Check life_cycle table
+                const lifeCycles = await makeSupabaseRequest('/life_cycle?select=*');
+                debugInfo += '🔍 Life Cycle Table (' + lifeCycles.length + ' records):\n';
+                lifeCycles.forEach(function(lc) {
+                    debugInfo += '  • ' + lc.life_cycle + ' (ID: ' + lc.lifecycle_id + ')\n';
+                });
+                debugInfo += '\n';
+                
+                // Check plants with life cycle info
+                const plants = await makeSupabaseRequest('/all_plants?select=common_name,life_cycle_id&limit=10');
+                debugInfo += '🌱 Plants Sample (' + plants.length + ' shown):\n';
+                plants.forEach(function(plant) {
+                    const lifeCycleStatus = plant.life_cycle_id ? 'HAS life_cycle_id: ' + plant.life_cycle_id : 'NO life_cycle_id';
+                    debugInfo += '  • ' + plant.common_name + ' - ' + lifeCycleStatus + '\n';
+                });
+                debugInfo += '\n';
+                
+                // Check how many plants have each life cycle
+                const plantsWithLifeCycle = await makeSupabaseRequest('/all_plants?select=life_cycle_id&life_cycle_id=not.is.null');
+                debugInfo += '📊 Plants with life cycles: ' + plantsWithLifeCycle.length + ' total\n';
+                
+                // Count by life cycle ID
+                const lifeCycleCounts = {};
+                plantsWithLifeCycle.forEach(function(plant) {
+                    const id = plant.life_cycle_id;
+                    lifeCycleCounts[id] = (lifeCycleCounts[id] || 0) + 1;
+                });
+                
+                debugInfo += '\n📈 Count by Life Cycle ID:\n';
+                for (const id in lifeCycleCounts) {
+                    const matchingLC = lifeCycles.find(function(lc) { return lc.lifecycle_id === id; });
+                    const name = matchingLC ? matchingLC.life_cycle : 'Unknown';
+                    debugInfo += '  • ' + name + ' (ID: ' + id + '): ' + lifeCycleCounts[id] + ' plants\n';
+                }
+                
+                document.getElementById('plantsList').innerHTML = '<pre style="background: #f8f9fa; padding: 16px; border-radius: 8px; font-size: 12px; overflow-x: auto; white-space: pre-wrap;">' + debugInfo + '</pre>';
+                
+            } catch (error) {
+                showResult('plantsList', '❌ Debug failed: ' + error.message, 'error');
+            }
         }
     </script>
 </body>
