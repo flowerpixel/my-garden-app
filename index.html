@@ -444,28 +444,22 @@
             <div id="calendar" class="section">
                 <h2 style="margin-bottom: 20px; color: #333;">📅 Sowing Calendar</h2>
                 
-                <div class="quick-actions">
-                    <button class="quick-btn" onclick="loadSowingCalendar('all')">All Seeds</button>
-                    <button class="quick-btn" onclick="loadSowingCalendar('current')">Sow Now</button>
-                    <button class="quick-btn" onclick="loadSowingCalendar('upcoming')">Upcoming</button>
-                    <button class="quick-btn" onclick="setLastFrostDate()">Set Frost Date</button>
+                <div class="setup-form">
+                    <h3>🌡️ Quick Frost Date Setup</h3>
+                    <p style="font-size: 14px; color: #856404; margin-bottom: 12px;">
+                        Enter your area's average last frost date:
+                    </p>
+                    <div style="display: flex; gap: 10px; align-items: end;">
+                        <div style="flex: 1;">
+                            <input type="date" id="quickFrostDate" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 8px;">
+                        </div>
+                        <button onclick="calculateSowingDates()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; white-space: nowrap;">Calculate</button>
+                    </div>
                 </div>
                 
-                <div id="frostDateForm" class="hidden" style="background: #fff3cd; padding: 16px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #ffeaa7;">
-                    <h3 style="margin-bottom: 16px; color: #856404;">Set Last Frost Date</h3>
-                    <p style="font-size: 14px; color: #856404; margin-bottom: 12px;">
-                        Enter your area's average last frost date for this year:
-                    </p>
-                    
-                    <div class="form-group">
-                        <label for="lastFrostDate">Last Frost Date (this year)</label>
-                        <input type="date" id="lastFrostDate">
-                    </div>
-                    
-                    <button class="btn" onclick="saveLastFrostDate()">💾 Save Frost Date</button>
-                    <button class="btn btn-secondary" onclick="hideFrostDateForm()">Cancel</button>
-                    
-                    <div id="frostDateResult"></div>
+                <div class="quick-actions">
+                    <button class="quick-btn" onclick="showSampleSeeds()">Show Sample Seeds</button>
+                    <button class="quick-btn" onclick="loadActualSeeds()">My Seeds</button>
                 </div>
                 
                 <div id="calendarList"></div>
@@ -1217,102 +1211,103 @@
             document.getElementById('sowingDate').value = yesterday.toISOString().split('T')[0];
         }
 
-        function setLastFrostDate() {
-            document.getElementById('frostDateForm').classList.remove('hidden');
-            // Pre-fill with current year's typical date (March 21st)
-            const currentYear = new Date().getFullYear();
-            document.getElementById('lastFrostDate').value = currentYear + '-03-21';
-        }
-
-        function hideFrostDateForm() {
-            document.getElementById('frostDateForm').classList.add('hidden');
-        }
-
-        async function saveLastFrostDate() {
-            const frostDate = document.getElementById('lastFrostDate').value;
-            const currentYear = new Date().getFullYear();
+        function calculateSowingDates() {
+            const frostDate = document.getElementById('quickFrostDate').value;
             
             if (!frostDate) {
-                showResult('frostDateResult', 'Please enter a frost date', 'error');
+                showResult('calendarList', 'Please enter a frost date first', 'error');
+                return;
+            }
+            
+            const lastFrost = new Date(frostDate);
+            const today = new Date();
+            
+            // Sample seed data with typical sowing times
+            const commonSeeds = [
+                { name: 'Tomatoes', minWeeks: 6, maxWeeks: 8, type: 'warm season' },
+                { name: 'Peppers', minWeeks: 8, maxWeeks: 10, type: 'warm season' },
+                { name: 'Basil', minWeeks: 6, maxWeeks: 8, type: 'warm season' },
+                { name: 'Lettuce', minWeeks: 4, maxWeeks: 6, type: 'cool season' },
+                { name: 'Spinach', minWeeks: 6, maxWeeks: 8, type: 'cool season' },
+                { name: 'Broccoli', minWeeks: 6, maxWeeks: 8, type: 'cool season' },
+                { name: 'Cucumber', minWeeks: 4, maxWeeks: 6, type: 'warm season' },
+                { name: 'Zucchini', minWeeks: 4, maxWeeks: 6, type: 'warm season' },
+                { name: 'Kale', minWeeks: 6, maxWeeks: 8, type: 'cool season' },
+                { name: 'Herbs (general)', minWeeks: 6, maxWeeks: 8, type: 'warm season' }
+            ];
+            
+            let calendarHtml = '<h3 style="margin-bottom: 16px; color: #333;">📅 Sowing Calendar for ' + formatDate(lastFrost) + ' Frost Date</h3>';
+            
+            commonSeeds.forEach(function(seed) {
+                // Calculate date range
+                const earliestDate = new Date(lastFrost);
+                earliestDate.setDate(earliestDate.getDate() - (seed.maxWeeks * 7));
+                
+                const latestDate = new Date(lastFrost);
+                latestDate.setDate(latestDate.getDate() - (seed.minWeeks * 7));
+                
+                // Determine status
+                let statusColor = '#6c757d';
+                let statusText = '📅 Future';
+                let statusBg = '#e9ecef';
+                
+                const isCurrentlyOptimal = today >= earliestDate && today <= latestDate;
+                const isPast = today > latestDate;
+                
+                if (isCurrentlyOptimal) {
+                    statusColor = '#155724';
+                    statusText = '🌱 Sow Now!';
+                    statusBg = '#d4edda';
+                } else if (isPast) {
+                    statusColor = '#721c24';
+                    statusText = '⏰ Window Passed';
+                    statusBg = '#f8d7da';
+                }
+                
+                const earliestStr = formatDate(earliestDate);
+                const latestStr = formatDate(latestDate);
+                
+                calendarHtml += '<div class="plant-card">';
+                calendarHtml += '<h3>' + seed.name + '</h3>';
+                calendarHtml += '<p style="color: ' + statusColor + '; font-weight: 600; background: ' + statusBg + '; padding: 8px; border-radius: 8px; text-align: center;">' + statusText + '</p>';
+                calendarHtml += '<p>📅 Optimal window: ' + earliestStr + ' - ' + latestStr + '</p>';
+                calendarHtml += '<p>⏱️ ' + seed.minWeeks + '-' + seed.maxWeeks + ' weeks before last frost</p>';
+                calendarHtml += '<div class="badges">';
+                calendarHtml += '<span class="badge">' + (seed.type === 'warm season' ? '🌡️ Warm Season' : '❄️ Cool Season') + '</span>';
+                calendarHtml += '</div>';
+                calendarHtml += '</div>';
+            });
+            
+            document.getElementById('calendarList').innerHTML = calendarHtml;
+        }
+
+        function showSampleSeeds() {
+            // Set a default frost date and calculate
+            const currentYear = new Date().getFullYear();
+            document.getElementById('quickFrostDate').value = currentYear + '-03-21';
+            calculateSowingDates();
+        }
+
+        async function loadActualSeeds() {
+            const frostDate = document.getElementById('quickFrostDate').value;
+            
+            if (!frostDate) {
+                showResult('calendarList', 'Please enter a frost date first', 'error');
                 return;
             }
             
             try {
-                showResult('frostDateResult', 'Saving frost date...', 'loading');
+                showResult('calendarList', 'Loading your seed data...', 'loading');
                 
-                // First, let's check the table structure
-                console.log('Attempting to save frost date:', frostDate, 'for year:', currentYear);
-                
-                // Check if frost date already exists for this year
-                const existingFrost = await makeSupabaseRequest('/last_frost_date_year?select=*&year=eq.' + currentYear);
-                console.log('Existing frost dates:', existingFrost);
-                
-                if (existingFrost.length > 0) {
-                    // Update existing record
-                    console.log('Updating existing frost date...');
-                    const updateData = {
-                        last_frost_date: frostDate
-                    };
-                    console.log('Update data:', updateData);
-                    
-                    const result = await makeSupabaseRequest('/last_frost_date_year?last_frost_date_id=eq.' + existingFrost[0].last_frost_date_id, 'PATCH', updateData);
-                    console.log('Update result:', result);
-                } else {
-                    // Create new record
-                    console.log('Creating new frost date record...');
-                    const newData = {
-                        last_frost_date: frostDate,
-                        year: currentYear
-                    };
-                    console.log('New data:', newData);
-                    
-                    const result = await makeSupabaseRequest('/last_frost_date_year', 'POST', newData);
-                    console.log('Create result:', result);
-                }
-                
-                showResult('frostDateResult', '✅ Saved last frost date: ' + frostDate, 'success');
-                
-                // Hide form and refresh calendar
-                setTimeout(function() {
-                    hideFrostDateForm();
-                    loadSowingCalendar('all');
-                }, 1500);
-                
-            } catch (error) {
-                console.error('Full error details:', error);
-                showResult('frostDateResult', '❌ Failed to save frost date: ' + error.message, 'error');
-                
-                // Let's also try a simplified approach
-                showResult('frostDateResult', '❌ Error details: ' + error.message + '. Check browser console for more info.', 'error');
-            }
-        }
-
-        async function loadSowingCalendar(filter) {
-            filter = filter || 'all';
-            
-            try {
-                showResult('calendarList', 'Loading sowing calendar...', 'loading');
-                
-                // First get the current year's frost date
-                const currentYear = new Date().getFullYear();
-                const frostDates = await makeSupabaseRequest('/last_frost_date_year?select=*&year=eq.' + currentYear);
-                
-                if (frostDates.length === 0) {
-                    showResult('calendarList', '❌ No frost date set for ' + currentYear + '. Please set your last frost date first.', 'error');
-                    return;
-                }
-                
-                const lastFrostDate = new Date(frostDates[0].last_frost_date);
-                
-                // Get indoor winter sowing data with plant info
+                // Try to get data from indoor_winter_sowing table
                 const sowingData = await makeSupabaseRequest('/indoor_winter_sowing?select=*');
                 
                 if (sowingData.length === 0) {
-                    showResult('calendarList', 'No indoor sowing schedules found. Add some to your indoor_winter_sowing table!', 'error');
+                    showResult('calendarList', 'No seed timing data found in your indoor_winter_sowing table. Use "Show Sample Seeds" to see examples, or add data to your indoor_winter_sowing table.', 'error');
                     return;
                 }
                 
-                // Get plant details
+                // Get plant names
                 const plantIds = sowingData.map(function(s) { return s.plant_id; });
                 const plants = await makeSupabaseRequest('/all_plants?select=*&plant_id=in.(' + plantIds.join(',') + ')');
                 const plantMap = {};
@@ -1320,102 +1315,49 @@
                     plantMap[p.plant_id] = p;
                 });
                 
-                // Get varieties if they exist
-                const varietyIds = sowingData.filter(function(s) { return s.variety_id; }).map(function(s) { return s.variety_id; });
-                let varieties = [];
-                if (varietyIds.length > 0) {
-                    varieties = await makeSupabaseRequest('/variety?select=*&variety_id=in.(' + varietyIds.join(',') + ')');
-                }
-                const varietyMap = {};
-                varieties.forEach(function(v) {
-                    varietyMap[v.variety_id] = v;
-                });
-                
-                // Calculate sowing dates
+                const lastFrost = new Date(frostDate);
                 const today = new Date();
-                let calendarItems = [];
+                
+                let calendarHtml = '<h3 style="margin-bottom: 16px; color: #333;">📅 Your Seed Calendar</h3>';
                 
                 sowingData.forEach(function(sowing) {
                     const plant = plantMap[sowing.plant_id];
-                    const variety = sowing.variety_id ? varietyMap[sowing.variety_id] : null;
-                    
                     if (!plant) return;
                     
                     // Calculate date range
-                    const earliestDate = new Date(lastFrostDate);
+                    const earliestDate = new Date(lastFrost);
                     earliestDate.setDate(earliestDate.getDate() - (sowing.max_weeks_before_frost * 7));
                     
-                    const latestDate = new Date(lastFrostDate);
+                    const latestDate = new Date(lastFrost);
                     latestDate.setDate(latestDate.getDate() - (sowing.min_weeks_before_frost * 7));
                     
-                    const item = {
-                        plant: plant,
-                        variety: variety,
-                        sowing: sowing,
-                        earliestDate: earliestDate,
-                        latestDate: latestDate,
-                        isCurrentlyOptimal: today >= earliestDate && today <= latestDate,
-                        isPast: today > latestDate,
-                        isFuture: today < earliestDate
-                    };
-                    
-                    calendarItems.push(item);
-                });
-                
-                // Filter based on selection
-                if (filter === 'current') {
-                    calendarItems = calendarItems.filter(function(item) {
-                        return item.isCurrentlyOptimal;
-                    });
-                } else if (filter === 'upcoming') {
-                    calendarItems = calendarItems.filter(function(item) {
-                        return item.isFuture;
-                    });
-                }
-                
-                // Sort by earliest date
-                calendarItems.sort(function(a, b) {
-                    return a.earliestDate - b.earliestDate;
-                });
-                
-                if (calendarItems.length === 0) {
-                    let message = 'No sowing recommendations found';
-                    if (filter === 'current') message = 'No seeds to sow right now';
-                    if (filter === 'upcoming') message = 'No upcoming sowings scheduled';
-                    showResult('calendarList', message, 'error');
-                    return;
-                }
-                
-                // Generate HTML
-                let calendarHtml = '';
-                calendarItems.forEach(function(item) {
+                    // Determine status
                     let statusColor = '#6c757d';
                     let statusText = '📅 Future';
                     let statusBg = '#e9ecef';
                     
-                    if (item.isCurrentlyOptimal) {
+                    const isCurrentlyOptimal = today >= earliestDate && today <= latestDate;
+                    const isPast = today > latestDate;
+                    
+                    if (isCurrentlyOptimal) {
                         statusColor = '#155724';
                         statusText = '🌱 Sow Now!';
                         statusBg = '#d4edda';
-                    } else if (item.isPast) {
+                    } else if (isPast) {
                         statusColor = '#721c24';
                         statusText = '⏰ Window Passed';
                         statusBg = '#f8d7da';
                     }
                     
-                    const plantName = item.plant.common_name;
-                    const varietyName = item.variety ? item.variety.variety_name : '';
-                    const displayName = plantName + (varietyName ? ' (' + varietyName + ')' : '');
-                    
-                    const earliestStr = formatDate(item.earliestDate);
-                    const latestStr = formatDate(item.latestDate);
+                    const earliestStr = formatDate(earliestDate);
+                    const latestStr = formatDate(latestDate);
                     
                     calendarHtml += '<div class="plant-card">';
-                    calendarHtml += '<h3>' + displayName + '</h3>';
+                    calendarHtml += '<h3>' + plant.common_name + '</h3>';
                     calendarHtml += '<p style="color: ' + statusColor + '; font-weight: 600; background: ' + statusBg + '; padding: 8px; border-radius: 8px; text-align: center;">' + statusText + '</p>';
                     calendarHtml += '<p>📅 Optimal window: ' + earliestStr + ' - ' + latestStr + '</p>';
-                    calendarHtml += '<p>⏱️ ' + item.sowing.min_weeks_before_frost + '-' + item.sowing.max_weeks_before_frost + ' weeks before last frost</p>';
-                    if (item.sowing.winter_sowing) {
+                    calendarHtml += '<p>⏱️ ' + sowing.min_weeks_before_frost + '-' + sowing.max_weeks_before_frost + ' weeks before last frost</p>';
+                    if (sowing.winter_sowing) {
                         calendarHtml += '<p>❄️ Can be winter sown</p>';
                     }
                     calendarHtml += '</div>';
@@ -1424,7 +1366,7 @@
                 document.getElementById('calendarList').innerHTML = calendarHtml;
                 
             } catch (error) {
-                showResult('calendarList', '❌ Failed to load sowing calendar: ' + error.message, 'error');
+                showResult('calendarList', '❌ Failed to load seed data: ' + error.message, 'error');
             }
         }
 
