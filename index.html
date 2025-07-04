@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌱 My Garden</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .nav {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .nav-item {
+            flex: 1;
+            padding: 15px 10px;
+            text-align: center;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nav-item.active {
+            background: white;
+            color: #4CAF50;
+            border-bottom: 3px solid #4CAF50;
+        }
+        
+        .nav-item:hover {
+            background: #e9ecef;
+        }
+        
+        .content {
+            padding: 20px;
+            min-height: 400px;
+        }
+        
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background: #f8f9fa;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            background: white;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+        }
+        
+        .plant-card {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .plant-card h3 {
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .plant-card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        
+        .badges {
+            margin-top: 8px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #e9ecef;
+            color: #495057;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-right: 6px;
+            margin-top: 4px;
+        }
+        
+        .badge.edible {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .badge.flowering {
+            background: #fce4ec;
+            color: #880e4f;
+        }
+        
+        .result {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .setup-form {
+            background: #fff3cd;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .setup-form h3 {
+            color: #856404;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .quick-btn {
+            padding: 12px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quick-btn:hover {
+            border-color: #4CAF50;
+            background: #f8fff9;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌱 My Garden</h1>
+            <p>Track plants, sowings, and care from your phone</p>
+        </div>
+        
+        <div class="nav">
+            <button class="nav-item active" onclick="showSection('add')">Add Plant</button>
+            <button class="nav-item" onclick="showSection('sow')">Record Sowing</button>
+            <button class="nav-item" onclick="showSection('view')">View Plants</button>
+            <button class="nav-item" onclick="showSection('setup')">Setup</button>
+        </div>
+        
+        <div class="content">
+            <!-- Setup Section -->
+            <div id="setup" class="section">
+                <div class="setup-form">
+                    <h3>🔧 Database Connection</h3>
+                    <p style="font-size: 14px; color: #856404; margin-bottom: 12px;">
+                        Enter your Supabase credentials once to connect to your garden database:
+                    </p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="supabaseUrl">Supabase URL</label>
+                    <input type="url" id="supabaseUrl" placeholder="https://your-project.supabase.co" 
+                           value="https://gztgrmgspbaurpyvrweq.supabase.co">
+                </div>
+                
+                <div class="form-group">
+                    <label for="supabaseKey">API Key</label>
+                    <input type="password" id="supabaseKey" placeholder="Your anon/public key">
+                </div>
+                
+                <button class="btn" onclick="saveCredentials()">💾 Save & Test Connection</button>
+                <button class="btn btn-secondary" onclick="loadSampleData()">📝 Load Sample Data</button>
+                
+                <div id="setupResult"></div>
+            </div>
+            
+            <!-- Add Plant Section -->
+            <div id="add" class="section active">
+                <h2 style="margin-bottom: 20px; color: #333;">🌱 Add New Plant</h2>
+                
+                <div class="form-group">
+                    <label for="plantName">Plant Name</label>
+                    <input type="text" id="plantName" placeholder="e.g., Tomato, Basil, Sunflower">
+                </div>
+                
+                <div class="form-group">
+                    <label for="scientificName">Scientific Name (optional)</label>
+                    <input type="text" id="scientificName" placeholder="e.g., Solanum lycopersicum">
+                </div>
+                
+                <div class="form-group">
+                    <label for="plantType">Type</label>
+                    <select id="plantType">
+                        <option value="">Select type...</option>
+                        <option value="vegetable">Vegetable</option>
+                        <option value="herb">Herb</option>
+                        <option value="flower">Flower</option>
+                        <option value="fruit">Fruit</option>
+                        <option value="tree">Tree</option>
+                        <option value="shrub">Shrub</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="isEdible" style="width: auto; margin-right: 8px;">
+                        This plant is edible
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="isFlowering" style="width: auto; margin-right: 8px;">
+                        This plant flowers
+                    </label>
+                </div>
+                
+                <button class="btn" onclick="addPlant()">🌱 Add Plant</button>
+                
+                <div id="addResult"></div>
+            </div>
+            
+            <!-- Record Sowing Section -->
+            <div id="sow" class="section">
+                <h2 style="margin-bottom: 20px; color: #333;">📝 Record Sowing</h2>
+                
+                <div class="quick-actions">
+                    <button class="quick-btn" onclick="setTodayDate()">📅 Today</button>
+                    <button class="quick-btn" onclick="setYesterdayDate()">📅 Yesterday</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sowingPlant">Plant</label>
+                    <select id="sowingPlant">
+                        <option value="">Select plant...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sowingVariety">Variety (optional)</label>
+                    <input type="text" id="sowingVariety" placeholder="e.g., Cherokee Purple, Genovese">
+                </div>
+                
+                <div class="form-group">
+                    <label for="sowingDate">Sowing Date</label>
+                    <input type="date" id="sowingDate">
+                </div>
+                
+                <div class="form-group">
+                    <label for="sowingMethod">Method</label>
+                    <select id="sowingMethod">
+                        <option value="">Select method...</option>
+                        <option value="direct_sow">Direct Sow</option>
+                        <option value="transplant">Transplant</option>
+                        <option value="indoor">Indoor Start</option>
+                        <option value="winter_sow">Winter Sowing</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sowingNotes">Notes (optional)</label>
+                    <textarea id="sowingNotes" rows="3" placeholder="Location, conditions, observations..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="winterSowing" style="width: auto; margin-right: 8px;">
+                        Winter sowing
+                    </label>
+                </div>
+                
+                <button class="btn" onclick="recordSowing()">📝 Record Sowing</button>
+                
+                <div id="sowResult"></div>
+            </div>
+            
+            <!-- View Plants Section -->
+            <div id="view" class="section">
+                <h2 style="margin-bottom: 20px; color: #333;">🌿 My Plants</h2>
+                
+                <div class="quick-actions">
+                    <button class="quick-btn" onclick="loadPlants('all')">All Plants</button>
+                    <button class="quick-btn" onclick="loadPlants('edible')">Edible Only</button>
+                    <button class="quick-btn" onclick="loadPlants('flowering')">Flowering</button>
+                    <button class="quick-btn" onclick="loadRecentSowings()">Recent Sowings</button>
+                </div>
+                
+                <button class="btn btn-secondary" onclick="refreshPlants()">🔄 Refresh</button>
+                
+                <div id="plantsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let supabaseUrl = '';
+        let supabaseKey = '';
+        let plantsCache = [];
+
+        // Load saved credentials
+        window.addEventListener('load', () => {
+            const savedUrl = localStorage.getItem('supabaseUrl');
+            const savedKey = localStorage.getItem('supabaseKey');
+            
+            if (savedUrl) {
+                document.getElementById('supabaseUrl').value = savedUrl;
+                supabaseUrl = savedUrl;
+            }
+            if (savedKey) {
+                document.getElementById('supabaseKey').value = savedKey;
+                supabaseKey = savedKey;
+            }
+            
+            // Set today's date
+            setTodayDate();
+            
+            // Load plants if credentials exist
+            if (supabaseUrl && supabaseKey) {
+                loadPlantsForDropdown();
+            }
+        });
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function makeSupabaseRequest(endpoint, method = 'GET', body = null) {
+            if (!supabaseUrl || !supabaseKey) {
+                throw new Error('Database not configured. Go to Setup tab first.');
+            }
+
+            const url = `${supabaseUrl}/rest/v1${endpoint}`;
+            const headers = {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`,
+                'Content-Type': 'application/json'
+            };
+
+            const options = { method, headers };
+            if (body && method !== 'GET') {
+                options.body = JSON.stringify(body);
+            }
+
+            const response = await fetch(url, options);
+            
+            if (!response.ok) {
+                throw new Error(`Database error: ${response.status} ${response.statusText}`);
+            }
+
+            return await response.json();
+        }
+
+        function saveCredentials() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+            
+            if (!url || !key) {
+                showResult('setupResult', 'Please enter both URL and API key', 'error');
+                return;
+            }
+            
+            supabaseUrl = url;
+            supabaseKey = key;
+            
+            localStorage.setItem('supabaseUrl', url);
+            localStorage.setItem('supabaseKey', key);
+            
+            // Test connection
+            testConnection();
+        }
+
+        async function testConnection() {
+            try {
+                showResult('setupResult', 'Testing connection...', 'loading');
+                
+                const plants = await makeSupabaseRequest('/all_plants?select=*&limit=1');
+                showResult('setupResult', '✅ Connected successfully! Ready to use your garden database.', 'success');
+                
+                // Load plants for dropdown
+                loadPlantsForDropdown();
+                
+            } catch (error) {
+                showResult('setupResult', `❌ Connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function addPlant() {
+            const name = document.getElementById('plantName').value.trim();
+            const scientificName = document.getElementById('scientificName').value.trim();
+            const plantType = document.getElementById('plantType').value;
+            const isEdible = document.getElementById('isEdible').checked;
+            const isFlowering = document.getElementById('isFlowering').checked;
+            
+            if (!name) {
+                showResult('addResult', 'Please enter a plant name', 'error');
+                return;
+            }
+            
+            try {
+                showResult('addResult', 'Adding plant...', 'loading');
+                
+                const plantData = {
+                    common_name: name,
+                    sci_name: scientificName || null,
+                    edible: isEdible,
+                    flowering: isFlowering
+                };
+                
+                await makeSupabaseRequest('/all_plants', 'POST', plantData);
+                
+                showResult('addResult', `✅ Successfully added "${name}" to your garden database!`, 'success');
+                
+                // Clear form
+                document.getElementById('plantName').value = '';
+                document.getElementById('scientificName').value = '';
+                document.getElementById('plantType').value = '';
+                document.getElementById('isEdible').checked = false;
+                document.getElementById('isFlowering').checked = false;
+                
+                // Refresh plants list
+                loadPlantsForDropdown();
+                
+            } catch (error) {
+                showResult('addResult', `❌ Failed to add plant: ${error.message}`, 'error');
+            }
+        }
+
+        async function recordSowing() {
+            const plantSelect = document.getElementById('sowingPlant');
+            const plantId = plantSelect.value;
+            const variety = document.getElementById('sowingVariety').value.trim();
+            const date = document.getElementById('sowingDate').value;
+            const method = document.getElementById('sowingMethod').value;
+            const notes = document.getElementById('sowingNotes').value.trim();
+            const winterSowing = document.getElementById('winterSowing').checked;
+            
+            if (!plantId || !date) {
+                showResult('sowResult', 'Please select a plant and enter a date', 'error');
+                return;
+            }
+            
+            try {
+                showResult('sowResult', 'Recording sowing...', 'loading');
+                
+                const sowingData = {
+                    plant_id: plantId,
+                    sowing_date: date,
+                    notes: notes || null,
+                    winter_sowing: winterSowing
+                };
+                
+                await makeSupabaseRequest('/actual_sowing', 'POST', sowingData);
+                
+                const plantName = plantSelect.options[plantSelect.selectedIndex].text;
+                showResult('sowResult', `✅ Recorded sowing of "${plantName}" on ${date}!`, 'success');
+                
+                // Clear form
+                document.getElementById('sowingVariety').value = '';
+                document.getElementById('sowingMethod').value = '';
+                document.getElementById('sowingNotes').value = '';
+                document.getElementById('winterSowing').checked = false;
+                setTodayDate();
+                
+            } catch (error) {
+                showResult('sowResult', `❌ Failed to record sowing: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadPlants(filter = 'all') {
+            try {
+                showResult('plantsList', 'Loading plants...', 'loading');
+                
+                let endpoint = '/all_plants?select=*';
+                if (filter === 'edible') endpoint += '&edible=eq.true';
+                if (filter === 'flowering') endpoint += '&flowering=eq.true';
+                
+                const plants = await makeSupabaseRequest(endpoint);
+                
+                if (plants.length === 0) {
+                    showResult('plantsList', 'No plants found. Add some plants first!', 'error');
+                    return;
+                }
+                
+                const plantsHtml = plants.map(plant => `
+                    <div class="plant-card">
+                        <h3>${plant.common_name}</h3>
+                        ${plant.sci_name ? `<p><em>${plant.sci_name}</em></p>` : ''}
+                        <div class="badges">
+                            ${plant.edible ? '<span class="badge edible">🍽️ Edible</span>' : ''}
+                            ${plant.flowering ? '<span class="badge flowering">🌸 Flowering</span>' : ''}
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('plantsList').innerHTML = plantsHtml;
+                
+            } catch (error) {
+                showResult('plantsList', `❌ Failed to load plants: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadRecentSowings() {
+            try {
+                showResult('plantsList', 'Loading recent sowings...', 'loading');
+                
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                const dateString = thirtyDaysAgo.toISOString().split('T')[0];
+                
+                const sowings = await makeSupabaseRequest(`/actual_sowing?select=*&sowing_date=gte.${dateString}&order=sowing_date.desc&limit=20`);
+                
+                if (sowings.length === 0) {
+                    showResult('plantsList', 'No recent sowings found in the last 30 days.', 'error');
+                    return;
+                }
+                
+                const sowingsHtml = sowings.map(sowing => `
+                    <div class="plant-card">
+                        <h3>📅 ${sowing.sowing_date}</h3>
+                        <p>Plant ID: ${sowing.plant_id}</p>
+                        ${sowing.notes ? `<p>Notes: ${sowing.notes}</p>` : ''}
+                        <div class="badges">
+                            ${sowing.winter_sowing ? '<span class="badge">❄️ Winter Sowing</span>' : '<span class="badge">🌱 Regular</span>'}
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('plantsList').innerHTML = sowingsHtml;
+                
+            } catch (error) {
+                showResult('plantsList', `❌ Failed to load sowings: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadPlantsForDropdown() {
+            try {
+                const plants = await makeSupabaseRequest('/all_plants?select=plant_id,common_name&order=common_name');
+                plantsCache = plants;
+                
+                const select = document.getElementById('sowingPlant');
+                select.innerHTML = '<option value="">Select plant...</option>';
+                
+                plants.forEach(plant => {
+                    const option = document.createElement('option');
+                    option.value = plant.plant_id;
+                    option.textContent = plant.common_name;
+                    select.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('Failed to load plants for dropdown:', error);
+            }
+        }
+
+        function refreshPlants() {
+            loadPlantsForDropdown();
+            loadPlants('all');
+        }
+
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('sowingDate').value = today;
+        }
+
+        function setYesterdayDate() {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            document.getElementById('sowingDate').value = yesterday.toISOString().split('T')[0];
+        }
+
+        function loadSampleData() {
+            // Add some sample plants for testing
+            const samplePlants = [
+                { name: 'Tomato', scientific: 'Solanum lycopersicum', edible: true, flowering: true },
+                { name: 'Basil', scientific: 'Ocimum basilicum', edible: true, flowering: true },
+                { name: 'Sunflower', scientific: 'Helianthus annuus', edible: false, flowering: true }
+            ];
+            
+            showResult('setupResult', 'This would add sample plants to your database (not implemented yet)', 'success');
+        }
+
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            const className = type === 'loading' ? 'result' : `result ${type}`;
+            element.innerHTML = `<div class="${className}">${message}</div>`;
+        }
+    </script>
+</body>
+</html>
