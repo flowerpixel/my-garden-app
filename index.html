@@ -19,12 +19,28 @@
         }
         
         .container {
-            max-width: 400px;
+            max-width: 800px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            min-height: 80vh;
+        }
+        
+        .sidebar {
+            width: 200px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         
         .header {
@@ -35,49 +51,55 @@
         }
         
         .header h1 {
-            font-size: 24px;
+            font-size: 18px;
             margin-bottom: 5px;
         }
         
         .header p {
             opacity: 0.9;
-            font-size: 14px;
+            font-size: 12px;
         }
         
         .nav {
             display: flex;
+            flex-direction: column;
             background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-            overflow-x: auto;
+            padding: 10px 0;
         }
         
         .nav-item {
-            flex: 1;
-            padding: 12px 8px;
-            text-align: center;
+            width: 100%;
+            padding: 16px 20px;
+            text-align: left;
             background: none;
             border: none;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s;
-            white-space: nowrap;
-            min-width: 70px;
+            border-bottom: 1px solid #e9ecef;
         }
         
         .nav-item.active {
             background: white;
             color: #4CAF50;
-            border-bottom: 3px solid #4CAF50;
+            border-right: 4px solid #4CAF50;
+            font-weight: 600;
         }
         
         .nav-item:hover {
             background: #e9ecef;
         }
         
+        .nav-item:last-child {
+            border-bottom: none;
+        }
+        
         .content {
             padding: 20px;
             min-height: 400px;
+            flex: 1;
+            overflow-y: auto;
         }
         
         .section {
@@ -259,22 +281,24 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🌱 Sprout's Garden</h1>
-            <p>Track plants, sowings, and care from your phone</p>
+        <div class="sidebar">
+            <div class="header">
+                <h1>🌱 Sprout's Garden</h1>
+            </div>
+            
+            <div class="nav">
+                <button class="nav-item active" onclick="showSection('add')">🌱 Add Plant</button>
+                <button class="nav-item" onclick="showSection('varieties')">🌿 Varieties</button>
+                <button class="nav-item" onclick="showSection('sow')">📝 Sow</button>
+                <button class="nav-item" onclick="showSection('calendar')">📅 Calendar</button>
+                <button class="nav-item" onclick="showSection('pruning')">✂️ Pruning</button>
+                <button class="nav-item" onclick="showSection('view')">👁️ View</button>
+                <button class="nav-item" onclick="showSection('setup')">⚙️ Setup</button>
+            </div>
         </div>
         
-        <div class="nav">
-            <button class="nav-item active" onclick="showSection('add')">Add Plant</button>
-            <button class="nav-item" onclick="showSection('varieties')">Varieties</button>
-            <button class="nav-item" onclick="showSection('sow')">Sow</button>
-            <button class="nav-item" onclick="showSection('calendar')">Calendar</button>
-            <button class="nav-item" onclick="showSection('pruning')">Pruning</button>
-            <button class="nav-item" onclick="showSection('view')">View</button>
-            <button class="nav-item" onclick="showSection('setup')">Setup</button>
-        </div>
-        
-        <div class="content">
+        <div class="main-content">
+            <div class="content">
             <!-- Setup Section -->
             <div id="setup" class="section">
                 <div class="setup-form">
@@ -540,8 +564,8 @@
                 
                 <div class="quick-actions">
                     <button class="quick-btn" onclick="loadPlants('all')">All Plants</button>
-                    <button class="quick-btn" onclick="loadPlants('edible')">Edible Only</button>
-                    <button class="quick-btn" onclick="loadPlants('flowering')">Flowering</button>
+                    <button class="quick-btn" onclick="loadPlants('annuals')">Annuals</button>
+                    <button class="quick-btn" onclick="loadPlants('perennials')">Perennials</button>
                     <button class="quick-btn" onclick="loadRecentSowings()">Recent Sowings</button>
                 </div>
                 
@@ -1115,13 +1139,36 @@
                 showResult('plantsList', 'Loading plants...', 'loading');
                 
                 let endpoint = '/all_plants?select=*';
-                if (filter === 'edible') endpoint += '&edible=eq.true';
-                if (filter === 'flowering') endpoint += '&flowering=eq.true';
+                
+                if (filter === 'annuals') {
+                    // Get plants where life_cycle is 'annual'
+                    const lifeCycles = await makeSupabaseRequest('/life_cycle?select=lifecycle_id&life_cycle=eq.annual');
+                    if (lifeCycles.length > 0) {
+                        endpoint += '&life_cycle_id=eq.' + lifeCycles[0].lifecycle_id;
+                    } else {
+                        // No annuals found
+                        showResult('plantsList', 'No annual plants found. Add some annual plants first!', 'error');
+                        return;
+                    }
+                } else if (filter === 'perennials') {
+                    // Get plants where life_cycle is 'perennial'
+                    const lifeCycles = await makeSupabaseRequest('/life_cycle?select=lifecycle_id&life_cycle=eq.perennial');
+                    if (lifeCycles.length > 0) {
+                        endpoint += '&life_cycle_id=eq.' + lifeCycles[0].lifecycle_id;
+                    } else {
+                        // No perennials found
+                        showResult('plantsList', 'No perennial plants found. Add some perennial plants first!', 'error');
+                        return;
+                    }
+                }
                 
                 const plants = await makeSupabaseRequest(endpoint);
                 
                 if (plants.length === 0) {
-                    showResult('plantsList', 'No plants found. Add some plants first!', 'error');
+                    let message = 'No plants found. Add some plants first!';
+                    if (filter === 'annuals') message = 'No annual plants found.';
+                    if (filter === 'perennials') message = 'No perennial plants found.';
+                    showResult('plantsList', message, 'error');
                     return;
                 }
                 
