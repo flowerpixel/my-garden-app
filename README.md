@@ -1,1 +1,1 @@
-# my-garden-app
+# sprouts-garden-app
