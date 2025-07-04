@@ -1240,20 +1240,34 @@
             try {
                 showResult('frostDateResult', 'Saving frost date...', 'loading');
                 
+                // First, let's check the table structure
+                console.log('Attempting to save frost date:', frostDate, 'for year:', currentYear);
+                
                 // Check if frost date already exists for this year
                 const existingFrost = await makeSupabaseRequest('/last_frost_date_year?select=*&year=eq.' + currentYear);
+                console.log('Existing frost dates:', existingFrost);
                 
                 if (existingFrost.length > 0) {
-                    // Update existing
-                    await makeSupabaseRequest('/last_frost_date_year?year=eq.' + currentYear, 'PATCH', {
+                    // Update existing record
+                    console.log('Updating existing frost date...');
+                    const updateData = {
                         last_frost_date: frostDate
-                    });
+                    };
+                    console.log('Update data:', updateData);
+                    
+                    const result = await makeSupabaseRequest('/last_frost_date_year?last_frost_date_id=eq.' + existingFrost[0].last_frost_date_id, 'PATCH', updateData);
+                    console.log('Update result:', result);
                 } else {
-                    // Create new
-                    await makeSupabaseRequest('/last_frost_date_year', 'POST', {
+                    // Create new record
+                    console.log('Creating new frost date record...');
+                    const newData = {
                         last_frost_date: frostDate,
                         year: currentYear
-                    });
+                    };
+                    console.log('New data:', newData);
+                    
+                    const result = await makeSupabaseRequest('/last_frost_date_year', 'POST', newData);
+                    console.log('Create result:', result);
                 }
                 
                 showResult('frostDateResult', '✅ Saved last frost date: ' + frostDate, 'success');
@@ -1265,7 +1279,11 @@
                 }, 1500);
                 
             } catch (error) {
+                console.error('Full error details:', error);
                 showResult('frostDateResult', '❌ Failed to save frost date: ' + error.message, 'error');
+                
+                // Let's also try a simplified approach
+                showResult('frostDateResult', '❌ Error details: ' + error.message + '. Check browser console for more info.', 'error');
             }
         }
 
