@@ -1451,6 +1451,76 @@
             }
         }
 
+        async function debugPlants() {
+            try {
+                showResult('plantsList', 'Debugging plants table...', 'loading');
+                
+                let debugInfo = '';
+                
+                // Test basic connection
+                try {
+                    const testResponse = await makeSupabaseRequest('/all_plants?select=*&limit=5');
+                    debugInfo += '✅ Basic connection works\n';
+                    debugInfo += 'Found ' + testResponse.length + ' plants\n\n';
+                    
+                    if (testResponse.length > 0) {
+                        debugInfo += 'Sample plants:\n';
+                        testResponse.forEach(function(plant, index) {
+                            debugInfo += (index + 1) + '. ' + plant.common_name;
+                            if (plant.sci_name) debugInfo += ' (' + plant.sci_name + ')';
+                            debugInfo += '\n';
+                            debugInfo += '   Edible: ' + (plant.edible ? 'Yes' : 'No');
+                            debugInfo += ' | Flowering: ' + (plant.flowering ? 'Yes' : 'No');
+                            debugInfo += ' | Life Cycle ID: ' + (plant.life_cycle_id || 'None');
+                            debugInfo += '\n\n';
+                        });
+                    } else {
+                        debugInfo += '❌ No plants found in database\n';
+                        debugInfo += 'This means the table is empty or there\'s a filtering issue\n\n';
+                    }
+                } catch (e) {
+                    debugInfo += '❌ Connection failed: ' + e.message + '\n\n';
+                }
+                
+                // Test life cycle filtering
+                try {
+                    const lifeCycles = await makeSupabaseRequest('/life_cycle?select=*');
+                    debugInfo += '📊 Life cycles available:\n';
+                    lifeCycles.forEach(function(lc) {
+                        debugInfo += '• ' + lc.life_cycle + ' (ID: ' + lc.lifecycle_id + ')\n';
+                    });
+                    debugInfo += '\n';
+                } catch (e) {
+                    debugInfo += '❌ Life cycle error: ' + e.message + '\n\n';
+                }
+                
+                // Test each filter
+                const filters = ['annuals', 'perennials', 'biennials'];
+                for (let i = 0; i < filters.length; i++) {
+                    const filter = filters[i];
+                    try {
+                        const lifeCycleName = filter === 'annuals' ? 'Annual' : 
+                                            filter === 'perennials' ? 'Perennial' : 'Biennial';
+                        const lifeCycles = await makeSupabaseRequest('/life_cycle?select=lifecycle_id&life_cycle=eq.' + lifeCycleName);
+                        
+                        if (lifeCycles.length > 0) {
+                            const plants = await makeSupabaseRequest('/all_plants?select=*&life_cycle_id=eq.' + lifeCycles[0].lifecycle_id);
+                            debugInfo += '🔍 ' + lifeCycleName + ' plants: ' + plants.length + ' found\n';
+                        } else {
+                            debugInfo += '❌ No ' + lifeCycleName + ' life cycle found\n';
+                        }
+                    } catch (e) {
+                        debugInfo += '❌ ' + filter + ' filter error: ' + e.message + '\n';
+                    }
+                }
+                
+                document.getElementById('plantsList').innerHTML = '<pre style="background: #f8f9fa; padding: 12px; border-radius: 8px; font-size: 11px; overflow-x: auto; white-space: pre-wrap;">' + debugInfo + '</pre>';
+                
+            } catch (error) {
+                showResult('plantsList', '❌ Debug failed: ' + error.message, 'error');
+            }
+        }
+
         function refreshPlants() {
             loadPlantsForDropdown();
             loadPlantsForVarieties();
