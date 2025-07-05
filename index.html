@@ -1222,7 +1222,111 @@
                 return;
             }
             
-            showResult('calendarList', 'Frost date calculator coming soon! This will suggest optimal sowing dates based on your last frost date.', 'success');
+            showResult('calendarList', 'Calculating optimal sowing dates...', 'loading');
+            
+            // Save frost date
+            localStorage.setItem('lastFrostDate', frostDate);
+            
+            // Common vegetables and their sowing timing relative to last frost date
+            const sowingGuide = [
+                // Cold season crops (can handle frost)
+                { name: 'Peas', category: 'Cold Season', weeksBeforeFrost: 4, description: 'Direct sow 4-6 weeks before last frost' },
+                { name: 'Spinach', category: 'Cold Season', weeksBeforeFrost: 6, description: 'Direct sow 6-8 weeks before last frost' },
+                { name: 'Lettuce', category: 'Cold Season', weeksBeforeFrost: 4, description: 'Direct sow 4-6 weeks before last frost' },
+                { name: 'Radishes', category: 'Cold Season', weeksBeforeFrost: 4, description: 'Direct sow 4-6 weeks before last frost' },
+                { name: 'Carrots', category: 'Cold Season', weeksBeforeFrost: 3, description: 'Direct sow 3-4 weeks before last frost' },
+                { name: 'Beets', category: 'Cold Season', weeksBeforeFrost: 4, description: 'Direct sow 4-6 weeks before last frost' },
+                { name: 'Kale', category: 'Cold Season', weeksBeforeFrost: 6, description: 'Direct sow 6-8 weeks before last frost' },
+                { name: 'Cabbage', category: 'Cold Season', weeksBeforeFrost: 4, description: 'Transplant 4-6 weeks before last frost' },
+                { name: 'Broccoli', category: 'Cold Season', weeksBeforeFrost: 4, description: 'Transplant 4-6 weeks before last frost' },
+                
+                // Indoor starts (start indoors, transplant after frost)
+                { name: 'Tomatoes', category: 'Warm Season (Indoor Start)', weeksBeforeFrost: -8, weeksIndoorStart: 6, description: 'Start indoors 6-8 weeks before last frost, transplant 2 weeks after' },
+                { name: 'Peppers', category: 'Warm Season (Indoor Start)', weeksBeforeFrost: -8, weeksIndoorStart: 8, description: 'Start indoors 8-10 weeks before last frost, transplant 2 weeks after' },
+                { name: 'Eggplant', category: 'Warm Season (Indoor Start)', weeksBeforeFrost: -8, weeksIndoorStart: 8, description: 'Start indoors 8-10 weeks before last frost, transplant 2 weeks after' },
+                { name: 'Basil', category: 'Warm Season (Indoor Start)', weeksBeforeFrost: -6, weeksIndoorStart: 6, description: 'Start indoors 6 weeks before last frost, transplant after danger of frost' },
+                
+                // Direct sow after frost
+                { name: 'Beans', category: 'Warm Season (Direct)', weeksBeforeFrost: -1, description: 'Direct sow 1-2 weeks after last frost when soil is warm' },
+                { name: 'Corn', category: 'Warm Season (Direct)', weeksBeforeFrost: -1, description: 'Direct sow 1-2 weeks after last frost when soil is warm' },
+                { name: 'Cucumbers', category: 'Warm Season (Direct)', weeksBeforeFrost: -2, description: 'Direct sow 2 weeks after last frost or start indoors 3 weeks before' },
+                { name: 'Squash', category: 'Warm Season (Direct)', weeksBeforeFrost: -2, description: 'Direct sow 2-3 weeks after last frost when soil is warm' },
+                { name: 'Zucchini', category: 'Warm Season (Direct)', weeksBeforeFrost: -2, description: 'Direct sow 2-3 weeks after last frost when soil is warm' },
+                { name: 'Sunflowers', category: 'Warm Season (Direct)', weeksBeforeFrost: -1, description: 'Direct sow 1-2 weeks after last frost' },
+                
+                // Succession planting
+                { name: 'Lettuce (Summer)', category: 'Succession', weeksBeforeFrost: -4, description: 'Plant every 2 weeks through spring for continuous harvest' },
+                { name: 'Radishes (Summer)', category: 'Succession', weeksBeforeFrost: -2, description: 'Plant every 2 weeks through growing season' }
+            ];
+            
+            const frostDateObj = new Date(frostDate);
+            let calendarHtml = '<h3>🌡️ Optimal Sowing Calendar</h3>';
+            calendarHtml += '<p><strong>Based on last frost date:</strong> ' + frostDateObj.toLocaleDateString() + '</p>';
+            
+            // Group by category
+            const categories = {};
+            sowingGuide.forEach(plant => {
+                if (!categories[plant.category]) categories[plant.category] = [];
+                
+                let sowDate = new Date(frostDateObj);
+                if (plant.weeksIndoorStart) {
+                    // Indoor start date
+                    sowDate.setDate(sowDate.getDate() - (plant.weeksIndoorStart * 7));
+                } else {
+                    // Outdoor sow/transplant date
+                    sowDate.setDate(sowDate.getDate() - (plant.weeksBeforeFrost * 7));
+                }
+                
+                categories[plant.category].push({
+                    ...plant,
+                    sowDate: sowDate,
+                    sowDateStr: sowDate.toLocaleDateString()
+                });
+            });
+            
+            // Sort categories by date
+            Object.keys(categories).forEach(category => {
+                categories[category].sort((a, b) => a.sowDate - b.sowDate);
+            });
+            
+            // Display by category
+            Object.keys(categories).forEach(category => {
+                calendarHtml += '<h4>' + category + '</h4>';
+                categories[category].forEach(plant => {
+                    calendarHtml += '<div class="plant-card">';
+                    calendarHtml += '<h3>' + plant.name + '</h3>';
+                    calendarHtml += '<p><strong>Optimal Date:</strong> ' + plant.sowDateStr + '</p>';
+                    calendarHtml += '<p>' + plant.description + '</p>';
+                    
+                    // Add timing badge
+                    const today = new Date();
+                    const daysDiff = Math.floor((plant.sowDate - today) / (1000 * 60 * 60 * 24));
+                    
+                    calendarHtml += '<div class="badges">';
+                    if (daysDiff < -7) {
+                        calendarHtml += '<span class="badge" style="background: #f8d7da; color: #721c24;">Past Due</span>';
+                    } else if (daysDiff <= 0) {
+                        calendarHtml += '<span class="badge" style="background: #d4edda; color: #155724;">Plant Now!</span>';
+                    } else if (daysDiff <= 14) {
+                        calendarHtml += '<span class="badge" style="background: #fff3cd; color: #856404;">Plant Soon (' + daysDiff + ' days)</span>';
+                    } else {
+                        calendarHtml += '<span class="badge">In ' + daysDiff + ' days</span>';
+                    }
+                    calendarHtml += '</div>';
+                    
+                    calendarHtml += '</div>';
+                });
+            });
+            
+            // Add note about succession planting
+            calendarHtml += '<div class="setup-form" style="margin-top: 20px;">';
+            calendarHtml += '<h3>📝 Pro Tips</h3>';
+            calendarHtml += '<p><strong>Succession Planting:</strong> For continuous harvest, plant lettuce, radishes, and beans every 2-3 weeks.</p>';
+            calendarHtml += '<p><strong>Soil Temperature:</strong> Warm season crops need soil temperature of 60°F+ for best germination.</p>';
+            calendarHtml += '<p><strong>Microclimate:</strong> Your exact location may vary ±1-2 weeks from these suggestions.</p>';
+            calendarHtml += '</div>';
+            
+            document.getElementById('calendarList').innerHTML = calendarHtml;
         }
 
         async function loadPruningSchedule(filter) {
