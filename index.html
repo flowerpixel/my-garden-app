@@ -666,10 +666,35 @@
             const response = await fetch(url, options);
             
             if (!response.ok) {
-                throw new Error('Database error: ' + response.status + ' ' + response.statusText);
+                // Try to get error details
+                let errorMessage = 'Database error: ' + response.status + ' ' + response.statusText;
+                try {
+                    const errorText = await response.text();
+                    if (errorText) {
+                        errorMessage += ' - ' + errorText;
+                    }
+                } catch (e) {
+                    // Could not read error text
+                }
+                throw new Error(errorMessage);
             }
 
-            return await response.json();
+            // Check if response has content
+            const contentLength = response.headers.get('content-length');
+            if (contentLength === '0' || contentLength === null) {
+                // No content returned (common for successful POST/PATCH operations)
+                return [];
+            }
+
+            try {
+                return await response.json();
+            } catch (jsonError) {
+                // If JSON parsing fails, return empty array for successful operations
+                if (response.status >= 200 && response.status < 300) {
+                    return [];
+                }
+                throw new Error('Invalid JSON response: ' + jsonError.message);
+            }
         }
 
         function saveCredentials() {
