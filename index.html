@@ -395,8 +395,8 @@
                     <div class="quick-actions">
                         <button class="quick-btn" onclick="loadPlants('all')">All Plants</button>
                         <button class="quick-btn" onclick="checkRawAPI()">Check API</button>
-                        <button class="quick-btn" onclick="loadPlants('perennials')">Perennials</button>
-                        <button class="quick-btn" onclick="loadPlants('biennials')">Biennials</button>
+                        <button class="quick-btn" onclick="loadPlants('edible')">Edible</button>
+                        <button class="quick-btn" onclick="loadPlants('flowering')">Flowering</button>
                     </div>
                     
                     <div id="plantsList"></div>
@@ -437,11 +437,13 @@
                     <div class="quick-actions">
                         <button class="quick-btn" onclick="setTodayDate()">📅 Today</button>
                         <button class="quick-btn" onclick="setYesterdayDate()">📅 Yesterday</button>
+                        <button class="quick-btn" onclick="loadSowings()">View Sowings</button>
+                        <button class="quick-btn" onclick="loadPlantsForSowing()">Refresh Plants</button>
                     </div>
                     
                     <div class="form-group">
                         <label for="sowingPlant">Plant</label>
-                        <select id="sowingPlant">
+                        <select id="sowingPlant" onchange="loadVarietiesForSowing()">
                             <option value="">Select plant...</option>
                         </select>
                     </div>
@@ -484,6 +486,8 @@
                     <button class="btn" onclick="recordSowing()">📝 Record Sowing</button>
                     
                     <div id="sowResult"></div>
+                    
+                    <div id="sowingsList" style="margin-top: 20px;"></div>
                 </div>
                 
                 <!-- Sowing Calendar Section -->
@@ -502,8 +506,8 @@
                     </div>
                     
                     <div class="quick-actions">
-                        <button class="quick-btn" onclick="showSampleSeeds()">Show Sample Seeds</button>
-                        <button class="quick-btn" onclick="loadActualSeeds()">My Seeds</button>
+                        <button class="quick-btn" onclick="showThisYearSowings()">This Year's Sowings</button>
+                        <button class="quick-btn" onclick="showUpcomingTasks()">Upcoming Tasks</button>
                     </div>
                     
                     <div id="calendarList"></div>
@@ -576,8 +580,6 @@
                     
                     <div id="pruningList"></div>
                 </div>
-                
-                <!-- Other sections would go here but keeping minimal for debugging -->
             </div>
         </div>
     </div>
@@ -587,7 +589,7 @@
         let supabaseUrl = 'https://gztgrmgspbaurpyvrweq.supabase.co';
         let supabaseKey = '';
 
-        // Load saved credentials
+        // Load saved credentials and initialize
         window.addEventListener('load', function() {
             const savedUrl = localStorage.getItem('supabaseUrl');
             const savedKey = localStorage.getItem('supabaseKey');
@@ -599,6 +601,11 @@
             if (savedKey) {
                 document.getElementById('supabaseKey').value = savedKey;
                 supabaseKey = savedKey;
+            }
+            
+            // Load plants for dropdowns if we have credentials
+            if (supabaseKey) {
+                loadPlantsForDropdowns();
             }
         });
 
@@ -626,9 +633,18 @@
                     item.classList.add('active');
                 }
             });
+            
+            // Load section-specific data
+            if (sectionId === 'varieties') {
+                loadPlantsForDropdowns();
+            } else if (sectionId === 'sow') {
+                loadPlantsForSowing();
+            } else if (sectionId === 'pruning') {
+                loadPlantsForPruning();
+            }
         }
 
-        function saveCredentials() {
+        async function saveCredentials() {
             const url = document.getElementById('supabaseUrl').value.trim();
             const key = document.getElementById('supabaseKey').value.trim();
             
@@ -637,13 +653,31 @@
                 return;
             }
             
-            supabaseUrl = url;
-            supabaseKey = key;
-            
-            localStorage.setItem('supabaseUrl', url);
-            localStorage.setItem('supabaseKey', key);
-            
-            showResult('setupResult', '✅ Credentials saved!', 'success');
+            // Test connection
+            try {
+                const response = await fetch(url + '/rest/v1/all_plants?select=*&limit=1', {
+                    headers: {
+                        'apikey': key,
+                        'Authorization': 'Bearer ' + key
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Connection failed: ' + response.status);
+                }
+                
+                supabaseUrl = url;
+                supabaseKey = key;
+                
+                localStorage.setItem('supabaseUrl', url);
+                localStorage.setItem('supabaseKey', key);
+                
+                showResult('setupResult', '✅ Connection successful! Credentials saved.', 'success');
+                loadPlantsForDropdowns();
+                
+            } catch (error) {
+                showResult('setupResult', '❌ Connection failed: ' + error.message, 'error');
+            }
         }
 
         async function addPlant() {
@@ -700,6 +734,9 @@
                 document.getElementById('isEdible').checked = false;
                 document.getElementById('isFlowering').checked = false;
                 
+                // Refresh dropdowns
+                loadPlantsForDropdowns();
+                
             } catch (error) {
                 showResult('addResult', '❌ Failed to add plant: ' + error.message, 'error');
             }
@@ -714,7 +751,14 @@
             try {
                 showResult('plantsList', 'Loading plants...', 'loading');
                 
-                const response = await fetch(supabaseUrl + '/rest/v1/all_plants?select=*', {
+                let url = supabaseUrl + '/rest/v1/all_plants?select=*';
+                if (filter === 'edible') {
+                    url += '&edible=eq.true';
+                } else if (filter === 'flowering') {
+                    url += '&flowering=eq.true';
+                }
+                
+                const response = await fetch(url, {
                     headers: {
                         'apikey': supabaseKey,
                         'Authorization': 'Bearer ' + supabaseKey
@@ -758,6 +802,73 @@
             }
         }
 
+        async function loadPlantsForDropdowns() {
+            if (!supabaseUrl || !supabaseKey) return;
+            
+            try {
+                const response = await fetch(supabaseUrl + '/rest/v1/all_plants?select=id,common_name', {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey
+                    }
+                });
+                
+                if (response.ok) {
+                    const plants = await response.json();
+                    
+                    // Update variety plant dropdown
+                    const varietySelect = document.getElementById('varietyPlant');
+                    if (varietySelect) {
+                        varietySelect.innerHTML = '<option value="">Choose a plant...</option>';
+                        plants.forEach(plant => {
+                            varietySelect.innerHTML += `<option value="${plant.id}">${plant.common_name}</option>`;
+                        });
+                    }
+                    
+                    // Update pruning plant dropdown
+                    const pruningSelect = document.getElementById('pruningPlant');
+                    if (pruningSelect) {
+                        pruningSelect.innerHTML = '<option value="">Choose a plant...</option>';
+                        plants.forEach(plant => {
+                            pruningSelect.innerHTML += `<option value="${plant.id}">${plant.common_name}</option>`;
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load plants for dropdowns:', error);
+            }
+        }
+
+        async function loadPlantsForSowing() {
+            if (!supabaseUrl || !supabaseKey) return;
+            
+            try {
+                const response = await fetch(supabaseUrl + '/rest/v1/all_plants?select=id,common_name', {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey
+                    }
+                });
+                
+                if (response.ok) {
+                    const plants = await response.json();
+                    const sowingSelect = document.getElementById('sowingPlant');
+                    if (sowingSelect) {
+                        sowingSelect.innerHTML = '<option value="">Select plant...</option>';
+                        plants.forEach(plant => {
+                            sowingSelect.innerHTML += `<option value="${plant.id}">${plant.common_name}</option>`;
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load plants for sowing:', error);
+            }
+        }
+
+        async function loadPlantsForPruning() {
+            loadPlantsForDropdowns(); // Same function works for pruning
+        }
+
         async function checkRawAPI() {
             if (!supabaseUrl || !supabaseKey) {
                 showResult('plantsList', 'Please configure database connection in Setup tab first', 'error');
@@ -793,19 +904,122 @@
             }
         }
 
-        function showResult(elementId, message, type) {
-            const element = document.getElementById(elementId);
-            const className = type === 'loading' ? 'result' : 'result ' + type;
-            element.innerHTML = '<div class="' + className + '">' + message + '</div>';
+        async function loadVarietiesForPlant() {
+            const plantId = document.getElementById('varietyPlant').value;
+            if (!plantId || !supabaseUrl || !supabaseKey) {
+                document.getElementById('varietiesList').innerHTML = '';
+                return;
+            }
+            
+            try {
+                const response = await fetch(supabaseUrl + `/rest/v1/varieties?select=*&plant_id=eq.${plantId}`, {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey
+                    }
+                });
+                
+                if (response.ok) {
+                    const varieties = await response.json();
+                    let varietiesHtml = '<h3>Existing Varieties:</h3>';
+                    
+                    if (varieties.length === 0) {
+                        varietiesHtml += '<p>No varieties found for this plant.</p>';
+                    } else {
+                        varieties.forEach(variety => {
+                            varietiesHtml += '<div class="plant-card">';
+                            varietiesHtml += '<h3>' + variety.variety_name + '</h3>';
+                            if (variety.sci_name) {
+                                varietiesHtml += '<p><em>' + variety.sci_name + '</em></p>';
+                            }
+                            varietiesHtml += '</div>';
+                        });
+                    }
+                    
+                    document.getElementById('varietiesList').innerHTML = varietiesHtml;
+                }
+            } catch (error) {
+                showResult('varietiesList', '❌ Failed to load varieties: ' + error.message, 'error');
+            }
         }
 
-        // Placeholder functions for other sections - add functionality as needed
-        function loadVarietiesForPlant() {
-            showResult('varietiesList', 'Varieties feature coming soon!', 'success');
+        async function addVariety() {
+            const plantId = document.getElementById('varietyPlant').value;
+            const varietyName = document.getElementById('varietyName').value.trim();
+            const scientificName = document.getElementById('varietyScientific').value.trim();
+            
+            if (!plantId || !varietyName) {
+                showResult('varietyResult', 'Please select a plant and enter a variety name', 'error');
+                return;
+            }
+            
+            if (!supabaseUrl || !supabaseKey) {
+                showResult('varietyResult', 'Please configure database connection first', 'error');
+                return;
+            }
+            
+            try {
+                showResult('varietyResult', 'Adding variety...', 'loading');
+                
+                const varietyData = {
+                    plant_id: parseInt(plantId),
+                    variety_name: varietyName,
+                    sci_name: scientificName || null
+                };
+                
+                const response = await fetch(supabaseUrl + '/rest/v1/varieties', {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(varietyData)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error('HTTP ' + response.status + ': ' + errorText);
+                }
+                
+                showResult('varietyResult', '✅ Successfully added variety "' + varietyName + '"!', 'success');
+                
+                // Clear form and reload varieties
+                document.getElementById('varietyName').value = '';
+                document.getElementById('varietyScientific').value = '';
+                loadVarietiesForPlant();
+                
+            } catch (error) {
+                showResult('varietyResult', '❌ Failed to add variety: ' + error.message, 'error');
+            }
         }
 
-        function addVariety() {
-            showResult('varietyResult', 'Add variety feature coming soon!', 'success');
+        async function loadVarietiesForSowing() {
+            const plantId = document.getElementById('sowingPlant').value;
+            const varietySelect = document.getElementById('sowingVariety');
+            
+            varietySelect.innerHTML = '<option value="">Select variety...</option>';
+            
+            if (!plantId || !supabaseUrl || !supabaseKey) return;
+            
+            try {
+                const response = await fetch(supabaseUrl + `/rest/v1/varieties?select=id,variety_name&plant_id=eq.${plantId}`, {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey
+                    }
+                });
+                
+                if (response.ok) {
+                    const varieties = await response.json();
+                    varieties.forEach(variety => {
+                        varietySelect.innerHTML += `<option value="${variety.id}">${variety.variety_name}</option>`;
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load varieties for sowing:', error);
+            }
         }
 
         function setTodayDate() {
@@ -825,24 +1039,251 @@
             }
         }
 
-        function recordSowing() {
-            showResult('sowResult', 'Record sowing feature coming soon!', 'success');
+        async function recordSowing() {
+            const plantId = document.getElementById('sowingPlant').value;
+            const varietyId = document.getElementById('sowingVariety').value || null;
+            const sowingDate = document.getElementById('sowingDate').value;
+            const method = document.getElementById('sowingMethod').value;
+            const notes = document.getElementById('sowingNotes').value.trim();
+            const winterSowing = document.getElementById('winterSowing').checked;
+            
+            if (!plantId || !sowingDate || !method) {
+                showResult('sowResult', 'Please fill in plant, date, and method', 'error');
+                return;
+            }
+            
+            if (!supabaseUrl || !supabaseKey) {
+                showResult('sowResult', 'Please configure database connection first', 'error');
+                return;
+            }
+            
+            try {
+                showResult('sowResult', 'Recording sowing...', 'loading');
+                
+                const sowingData = {
+                    plant_id: parseInt(plantId),
+                    variety_id: varietyId ? parseInt(varietyId) : null,
+                    sowing_date: sowingDate,
+                    method: method,
+                    notes: notes || null,
+                    winter_sowing: winterSowing
+                };
+                
+                const response = await fetch(supabaseUrl + '/rest/v1/sowings', {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(sowingData)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error('HTTP ' + response.status + ': ' + errorText);
+                }
+                
+                showResult('sowResult', '✅ Successfully recorded sowing!', 'success');
+                
+                // Clear form
+                document.getElementById('sowingPlant').value = '';
+                document.getElementById('sowingVariety').value = '';
+                document.getElementById('sowingDate').value = '';
+                document.getElementById('sowingMethod').value = '';
+                document.getElementById('sowingNotes').value = '';
+                document.getElementById('winterSowing').checked = false;
+                
+                // Reload sowings if visible
+                loadSowings();
+                
+            } catch (error) {
+                showResult('sowResult', '❌ Failed to record sowing: ' + error.message, 'error');
+            }
+        }
+
+        async function loadSowings() {
+            if (!supabaseUrl || !supabaseKey) {
+                showResult('sowingsList', 'Please configure database connection first', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(supabaseUrl + '/rest/v1/sowings?select=*,all_plants(common_name),varieties(variety_name)&order=sowing_date.desc', {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey
+                    }
+                });
+                
+                if (response.ok) {
+                    const sowings = await response.json();
+                    let sowingsHtml = '<h3>Recent Sowings:</h3>';
+                    
+                    if (sowings.length === 0) {
+                        sowingsHtml += '<p>No sowings recorded yet.</p>';
+                    } else {
+                        sowings.forEach(sowing => {
+                            sowingsHtml += '<div class="plant-card">';
+                            sowingsHtml += '<h3>' + sowing.all_plants.common_name;
+                            if (sowing.varieties && sowing.varieties.variety_name) {
+                                sowingsHtml += ' - ' + sowing.varieties.variety_name;
+                            }
+                            sowingsHtml += '</h3>';
+                            sowingsHtml += '<p>Date: ' + new Date(sowing.sowing_date).toLocaleDateString() + '</p>';
+                            sowingsHtml += '<p>Method: ' + sowing.method + '</p>';
+                            if (sowing.notes) {
+                                sowingsHtml += '<p>Notes: ' + sowing.notes + '</p>';
+                            }
+                            if (sowing.winter_sowing) {
+                                sowingsHtml += '<span class="badge">❄️ Winter Sowing</span>';
+                            }
+                            sowingsHtml += '</div>';
+                        });
+                    }
+                    
+                    document.getElementById('sowingsList').innerHTML = sowingsHtml;
+                }
+            } catch (error) {
+                showResult('sowingsList', '❌ Failed to load sowings: ' + error.message, 'error');
+            }
+        }
+
+        function showThisYearSowings() {
+            const currentYear = new Date().getFullYear();
+            showResult('calendarList', `Showing sowings for ${currentYear}...`, 'loading');
+            loadSowingsForYear(currentYear);
+        }
+
+        async function loadSowingsForYear(year) {
+            if (!supabaseUrl || !supabaseKey) {
+                showResult('calendarList', 'Please configure database connection first', 'error');
+                return;
+            }
+            
+            try {
+                const startDate = `${year}-01-01`;
+                const endDate = `${year}-12-31`;
+                
+                const response = await fetch(supabaseUrl + `/rest/v1/sowings?select=*,all_plants(common_name),varieties(variety_name)&sowing_date=gte.${startDate}&sowing_date=lte.${endDate}&order=sowing_date.desc`, {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey
+                    }
+                });
+                
+                if (response.ok) {
+                    const sowings = await response.json();
+                    let calendarHtml = `<h3>${year} Sowing Calendar:</h3>`;
+                    
+                    if (sowings.length === 0) {
+                        calendarHtml += '<p>No sowings recorded for this year.</p>';
+                    } else {
+                        // Group by month
+                        const monthGroups = {};
+                        sowings.forEach(sowing => {
+                            const month = new Date(sowing.sowing_date).toLocaleDateString('en-US', { month: 'long' });
+                            if (!monthGroups[month]) monthGroups[month] = [];
+                            monthGroups[month].push(sowing);
+                        });
+                        
+                        Object.keys(monthGroups).forEach(month => {
+                            calendarHtml += `<h4>${month}</h4>`;
+                            monthGroups[month].forEach(sowing => {
+                                calendarHtml += '<div class="plant-card">';
+                                calendarHtml += '<h3>' + sowing.all_plants.common_name;
+                                if (sowing.varieties && sowing.varieties.variety_name) {
+                                    calendarHtml += ' - ' + sowing.varieties.variety_name;
+                                }
+                                calendarHtml += '</h3>';
+                                calendarHtml += '<p>Date: ' + new Date(sowing.sowing_date).toLocaleDateString() + '</p>';
+                                calendarHtml += '<p>Method: ' + sowing.method + '</p>';
+                                calendarHtml += '</div>';
+                            });
+                        });
+                    }
+                    
+                    document.getElementById('calendarList').innerHTML = calendarHtml;
+                }
+            } catch (error) {
+                showResult('calendarList', '❌ Failed to load calendar: ' + error.message, 'error');
+            }
+        }
+
+        function showUpcomingTasks() {
+            showResult('calendarList', 'Upcoming tasks feature coming soon! This will show germination dates, transplant times, and harvest estimates based on your sowings.', 'success');
         }
 
         function calculateSowingDates() {
-            showResult('calendarList', 'Sowing calendar feature coming soon!', 'success');
+            const frostDate = document.getElementById('quickFrostDate').value;
+            if (!frostDate) {
+                showResult('calendarList', 'Please enter a frost date first', 'error');
+                return;
+            }
+            
+            showResult('calendarList', 'Frost date calculator coming soon! This will suggest optimal sowing dates based on your last frost date.', 'success');
         }
 
-        function showSampleSeeds() {
-            showResult('calendarList', 'Sample seeds feature coming soon!', 'success');
-        }
-
-        function loadActualSeeds() {
-            showResult('calendarList', 'Load actual seeds feature coming soon!', 'success');
-        }
-
-        function loadPruningSchedule(filter) {
-            showResult('pruningList', 'Pruning schedule feature coming soon!', 'success');
+        async function loadPruningSchedule(filter) {
+            if (!supabaseUrl || !supabaseKey) {
+                showResult('pruningList', 'Please configure database connection first', 'error');
+                return;
+            }
+            
+            try {
+                showResult('pruningList', 'Loading pruning schedule...', 'loading');
+                
+                let url = supabaseUrl + '/rest/v1/pruning_schedule?select=*,all_plants(common_name)';
+                if (filter === 'needs') {
+                    url += '&needs_pruning=eq.true';
+                }
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey
+                    }
+                });
+                
+                if (response.ok) {
+                    const schedules = await response.json();
+                    let scheduleHtml = '<h3>Pruning Schedule:</h3>';
+                    
+                    if (schedules.length === 0) {
+                        scheduleHtml += '<p>No pruning schedules found. Add some plants to the pruning schedule!</p>';
+                    } else {
+                        schedules.forEach(schedule => {
+                            scheduleHtml += '<div class="plant-card">';
+                            scheduleHtml += '<h3>' + schedule.all_plants.common_name + '</h3>';
+                            if (schedule.pruning_season) {
+                                scheduleHtml += '<p>Season: ' + schedule.pruning_season + '</p>';
+                            }
+                            if (schedule.suggested_date) {
+                                scheduleHtml += '<p>Suggested Date: ' + new Date(schedule.suggested_date).toLocaleDateString() + '</p>';
+                            }
+                            if (schedule.blooms_on) {
+                                scheduleHtml += '<p>Blooms On: ' + schedule.blooms_on + '</p>';
+                            }
+                            if (schedule.notes) {
+                                scheduleHtml += '<p>Notes: ' + schedule.notes + '</p>';
+                            }
+                            scheduleHtml += '<div class="badges">';
+                            if (schedule.needs_pruning) {
+                                scheduleHtml += '<span class="badge">✂️ Needs Pruning</span>';
+                            }
+                            scheduleHtml += '</div>';
+                            scheduleHtml += '</div>';
+                        });
+                    }
+                    
+                    document.getElementById('pruningList').innerHTML = scheduleHtml;
+                } else {
+                    showResult('pruningList', 'Pruning schedule table not found. This feature requires the pruning_schedule table.', 'error');
+                }
+            } catch (error) {
+                showResult('pruningList', '❌ Failed to load pruning schedule: ' + error.message, 'error');
+            }
         }
 
         function showAddPruningForm() {
@@ -850,6 +1291,7 @@
             if (form) {
                 form.classList.remove('hidden');
             }
+            loadPlantsForDropdowns();
         }
 
         function hideAddPruningForm() {
@@ -860,11 +1302,100 @@
         }
 
         function updatePruningDate() {
-            showResult('pruningAddResult', 'Date calculation feature coming soon!', 'success');
+            const season = document.getElementById('pruningSeason').value;
+            const dateInput = document.getElementById('pruningDate');
+            
+            if (season && dateInput) {
+                const currentYear = new Date().getFullYear();
+                let suggestedDate = '';
+                
+                switch (season) {
+                    case 'spring':
+                        suggestedDate = `${currentYear}-04-01`;
+                        break;
+                    case 'summer':
+                        suggestedDate = `${currentYear}-07-01`;
+                        break;
+                    case 'fall':
+                        suggestedDate = `${currentYear}-10-01`;
+                        break;
+                    case 'winter':
+                        suggestedDate = `${currentYear}-01-15`;
+                        break;
+                }
+                
+                dateInput.value = suggestedDate;
+            }
         }
 
-        function addPruningSchedule() {
-            showResult('pruningAddResult', 'Add pruning schedule feature coming soon!', 'success');
+        async function addPruningSchedule() {
+            const plantId = document.getElementById('pruningPlant').value;
+            const needsPruning = document.getElementById('pruningNeeded').checked;
+            const season = document.getElementById('pruningSeason').value;
+            const date = document.getElementById('pruningDate').value;
+            const bloomsOn = document.getElementById('bloomsOn').value;
+            const notes = document.getElementById('pruningNotes').value.trim();
+            
+            if (!plantId) {
+                showResult('pruningAddResult', 'Please select a plant', 'error');
+                return;
+            }
+            
+            if (!supabaseUrl || !supabaseKey) {
+                showResult('pruningAddResult', 'Please configure database connection first', 'error');
+                return;
+            }
+            
+            try {
+                showResult('pruningAddResult', 'Adding pruning schedule...', 'loading');
+                
+                const pruningData = {
+                    plant_id: parseInt(plantId),
+                    needs_pruning: needsPruning,
+                    pruning_season: season || null,
+                    suggested_date: date || null,
+                    blooms_on: bloomsOn || null,
+                    notes: notes || null
+                };
+                
+                const response = await fetch(supabaseUrl + '/rest/v1/pruning_schedule', {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(pruningData)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error('HTTP ' + response.status + ': ' + errorText);
+                }
+                
+                showResult('pruningAddResult', '✅ Successfully added pruning schedule!', 'success');
+                
+                // Clear form
+                document.getElementById('pruningPlant').value = '';
+                document.getElementById('pruningNeeded').checked = true;
+                document.getElementById('pruningSeason').value = '';
+                document.getElementById('pruningDate').value = '';
+                document.getElementById('bloomsOn').value = '';
+                document.getElementById('pruningNotes').value = '';
+                
+                // Reload schedule
+                loadPruningSchedule('all');
+                
+            } catch (error) {
+                showResult('pruningAddResult', '❌ Failed to add pruning schedule: ' + error.message, 'error');
+            }
+        }
+
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            const className = type === 'loading' ? 'result' : 'result ' + type;
+            element.innerHTML = '<div class="' + className + '">' + message + '</div>';
         }
     </script>
 </body>
