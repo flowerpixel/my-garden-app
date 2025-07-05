@@ -402,6 +402,181 @@
                     <div id="plantsList"></div>
                 </div>
                 
+                <!-- Varieties Section -->
+                <div id="varieties" class="section">
+                    <h2>🌿 Plant Varieties</h2>
+                    
+                    <div class="form-group">
+                        <label for="varietyPlant">Select Plant</label>
+                        <select id="varietyPlant" onchange="loadVarietiesForPlant()">
+                            <option value="">Choose a plant...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="varietyName">Variety Name</label>
+                        <input type="text" id="varietyName" placeholder="e.g., Cherokee Purple, Genovese, Brandywine">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="varietyScientific">Scientific Name (optional)</label>
+                        <input type="text" id="varietyScientific" placeholder="e.g., Solanum lycopersicum 'Cherokee Purple'">
+                    </div>
+                    
+                    <button class="btn" onclick="addVariety()">🌿 Add Variety</button>
+                    
+                    <div id="varietyResult"></div>
+                    
+                    <div id="varietiesList" style="margin-top: 20px;"></div>
+                </div>
+                
+                <!-- Sowing Section -->
+                <div id="sow" class="section">
+                    <h2>📝 Record Sowing</h2>
+                    
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="setTodayDate()">📅 Today</button>
+                        <button class="quick-btn" onclick="setYesterdayDate()">📅 Yesterday</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sowingPlant">Plant</label>
+                        <select id="sowingPlant">
+                            <option value="">Select plant...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sowingVariety">Variety (optional)</label>
+                        <select id="sowingVariety">
+                            <option value="">Select variety...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sowingDate">Sowing Date</label>
+                        <input type="date" id="sowingDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sowingMethod">Method</label>
+                        <select id="sowingMethod">
+                            <option value="">Select method...</option>
+                            <option value="direct_sow">Direct Sow</option>
+                            <option value="transplant">Transplant</option>
+                            <option value="indoor">Indoor Start</option>
+                            <option value="winter_sow">Winter Sowing</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sowingNotes">Notes (optional)</label>
+                        <textarea id="sowingNotes" rows="3" placeholder="Location, conditions, observations..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="winterSowing" style="width: auto; margin-right: 8px;">
+                            Winter sowing
+                        </label>
+                    </div>
+                    
+                    <button class="btn" onclick="recordSowing()">📝 Record Sowing</button>
+                    
+                    <div id="sowResult"></div>
+                </div>
+                
+                <!-- Sowing Calendar Section -->
+                <div id="calendar" class="section">
+                    <h2>📅 Sowing Calendar</h2>
+                    
+                    <div class="setup-form">
+                        <h3>🌡️ Quick Frost Date Setup</h3>
+                        <p>Enter your area's average last frost date:</p>
+                        <div style="display: flex; gap: 10px; align-items: end;">
+                            <div style="flex: 1;">
+                                <input type="date" id="quickFrostDate" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 8px;">
+                            </div>
+                            <button onclick="calculateSowingDates()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; white-space: nowrap;">Calculate</button>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="showSampleSeeds()">Show Sample Seeds</button>
+                        <button class="quick-btn" onclick="loadActualSeeds()">My Seeds</button>
+                    </div>
+                    
+                    <div id="calendarList"></div>
+                </div>
+                
+                <!-- Pruning Section -->
+                <div id="pruning" class="section">
+                    <h2>✂️ Pruning Schedule</h2>
+                    
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="loadPruningSchedule('all')">All Plants</button>
+                        <button class="quick-btn" onclick="loadPruningSchedule('needs')">Needs Pruning</button>
+                        <button class="quick-btn" onclick="showAddPruningForm()">Add Pruning</button>
+                        <button class="quick-btn" onclick="hideAddPruningForm()">Hide Form</button>
+                    </div>
+                    
+                    <div id="addPruningForm" class="hidden" style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 16px; color: #333;">Add Pruning Schedule</h3>
+                        
+                        <div class="form-group">
+                            <label for="pruningPlant">Select Plant</label>
+                            <select id="pruningPlant">
+                                <option value="">Choose a plant...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pruningNeeded">
+                                <input type="checkbox" id="pruningNeeded" style="width: auto; margin-right: 8px;" checked>
+                                This plant needs pruning
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pruningSeason">Pruning Season</label>
+                            <select id="pruningSeason" onchange="updatePruningDate()">
+                                <option value="">Select season...</option>
+                                <option value="spring">Spring (March-May)</option>
+                                <option value="summer">Summer (June-August)</option>
+                                <option value="fall">Fall (September-November)</option>
+                                <option value="winter">Winter (December-February)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pruningDate">Suggested Pruning Date</label>
+                            <input type="date" id="pruningDate">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bloomsOn">Blooms On</label>
+                            <select id="bloomsOn">
+                                <option value="">Select...</option>
+                                <option value="old_wood">Old Wood (prune after flowering)</option>
+                                <option value="new_wood">New Wood (prune in late winter/early spring)</option>
+                                <option value="both">Both Old & New Wood</option>
+                                <option value="non_flowering">Non-flowering plant</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pruningNotes">Pruning Notes</label>
+                            <textarea id="pruningNotes" rows="3" placeholder="Pruning instructions, tips, observations..."></textarea>
+                        </div>
+                        
+                        <button class="btn" onclick="addPruningSchedule()">✂️ Add Pruning Schedule</button>
+                        
+                        <div id="pruningAddResult"></div>
+                    </div>
+                    
+                    <div id="pruningList"></div>
+                </div>
+                
                 <!-- Other sections would go here but keeping minimal for debugging -->
             </div>
         </div>
@@ -622,6 +797,74 @@
             const element = document.getElementById(elementId);
             const className = type === 'loading' ? 'result' : 'result ' + type;
             element.innerHTML = '<div class="' + className + '">' + message + '</div>';
+        }
+
+        // Placeholder functions for other sections - add functionality as needed
+        function loadVarietiesForPlant() {
+            showResult('varietiesList', 'Varieties feature coming soon!', 'success');
+        }
+
+        function addVariety() {
+            showResult('varietyResult', 'Add variety feature coming soon!', 'success');
+        }
+
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('sowingDate');
+            if (dateInput) {
+                dateInput.value = today;
+            }
+        }
+
+        function setYesterdayDate() {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const dateInput = document.getElementById('sowingDate');
+            if (dateInput) {
+                dateInput.value = yesterday.toISOString().split('T')[0];
+            }
+        }
+
+        function recordSowing() {
+            showResult('sowResult', 'Record sowing feature coming soon!', 'success');
+        }
+
+        function calculateSowingDates() {
+            showResult('calendarList', 'Sowing calendar feature coming soon!', 'success');
+        }
+
+        function showSampleSeeds() {
+            showResult('calendarList', 'Sample seeds feature coming soon!', 'success');
+        }
+
+        function loadActualSeeds() {
+            showResult('calendarList', 'Load actual seeds feature coming soon!', 'success');
+        }
+
+        function loadPruningSchedule(filter) {
+            showResult('pruningList', 'Pruning schedule feature coming soon!', 'success');
+        }
+
+        function showAddPruningForm() {
+            const form = document.getElementById('addPruningForm');
+            if (form) {
+                form.classList.remove('hidden');
+            }
+        }
+
+        function hideAddPruningForm() {
+            const form = document.getElementById('addPruningForm');
+            if (form) {
+                form.classList.add('hidden');
+            }
+        }
+
+        function updatePruningDate() {
+            showResult('pruningAddResult', 'Date calculation feature coming soon!', 'success');
+        }
+
+        function addPruningSchedule() {
+            showResult('pruningAddResult', 'Add pruning schedule feature coming soon!', 'success');
         }
     </script>
 </body>
