@@ -277,6 +277,7 @@
             <div class="nav">
                 <button class="nav-item active" onclick="showSection('add')">🌱 Add Plant</button>
                 <button class="nav-item" onclick="showSection('varieties')">🌿 Varieties</button>
+                <button class="nav-item" onclick="showSection('pruning')">✂️ Pruning</button>
                 <button class="nav-item" onclick="showSection('view')">👁️ View</button>
                 <button class="nav-item" onclick="showSection('setup')">⚙️ Setup</button>
             </div>
@@ -386,6 +387,74 @@
                     
                     <div id="varietiesList" style="margin-top: 20px;"></div>
                 </div>
+                
+                <!-- Pruning Section -->
+                <div id="pruning" class="section">
+                    <h2>✂️ Pruning Schedule</h2>
+                    
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="loadPruningSchedule('all')">All Plants</button>
+                        <button class="quick-btn" onclick="loadPruningSchedule('needs')">Needs Pruning</button>
+                        <button class="quick-btn" onclick="showAddPruningForm()">Add Pruning</button>
+                        <button class="quick-btn" onclick="hideAddPruningForm()">Hide Form</button>
+                    </div>
+                    
+                    <div id="addPruningForm" style="display: none; background: #f8f9fa; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 16px; color: #333;">Add Pruning Schedule</h3>
+                        
+                        <div class="form-group">
+                            <label for="pruningPlant">Select Plant</label>
+                            <select id="pruningPlant">
+                                <option value="">Choose a plant...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="pruningNeeded" style="width: auto; margin-right: 8px;" checked>
+                                This plant needs pruning
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pruningSeason">Pruning Season</label>
+                            <select id="pruningSeason">
+                                <option value="">Select season...</option>
+                                <option value="spring">Spring (March-May)</option>
+                                <option value="summer">Summer (June-August)</option>
+                                <option value="fall">Fall (September-November)</option>
+                                <option value="winter">Winter (December-February)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pruningDate">Suggested Pruning Date</label>
+                            <input type="date" id="pruningDate">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bloomsOn">Blooms On</label>
+                            <select id="bloomsOn">
+                                <option value="">Select...</option>
+                                <option value="old_wood">Old Wood (prune after flowering)</option>
+                                <option value="new_wood">New Wood (prune in late winter/early spring)</option>
+                                <option value="both">Both Old & New Wood</option>
+                                <option value="non_flowering">Non-flowering plant</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pruningNotes">Pruning Notes</label>
+                            <textarea id="pruningNotes" rows="3" placeholder="Pruning instructions, tips, observations..."></textarea>
+                        </div>
+                        
+                        <button class="btn" onclick="addPruningSchedule()">✂️ Add Pruning Schedule</button>
+                        
+                        <div id="pruningAddResult"></div>
+                    </div>
+                    
+                    <div id="pruningList"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -436,6 +505,8 @@
             
             if (sectionId === 'varieties') {
                 loadPlantsForDropdowns();
+            } else if (sectionId === 'pruning') {
+                loadPlantsForPruning();
             }
         }
 
@@ -779,6 +850,172 @@
                 
             } catch (error) {
                 showResult('varietyResult', '❌ Failed to add variety: ' + error.message, 'error');
+            }
+        }
+
+        async function loadPlantsForPruning() {
+            if (!supabaseUrl || !supabaseKey) return;
+            
+            try {
+                const response = await fetch(supabaseUrl + '/rest/v1/all_plants?select=id,common_name&order=common_name', {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey
+                    }
+                });
+                
+                if (response.ok) {
+                    const plants = await response.json();
+                    const pruningSelect = document.getElementById('pruningPlant');
+                    if (pruningSelect) {
+                        pruningSelect.innerHTML = '<option value="">Choose a plant...</option>';
+                        plants.forEach(function(plant) {
+                            pruningSelect.innerHTML += '<option value="' + plant.id + '">' + plant.common_name + '</option>';
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load plants for pruning:', error);
+            }
+        }
+
+        async function loadPruningSchedule(filter) {
+            if (!supabaseUrl || !supabaseKey) {
+                showResult('pruningList', 'Please configure database connection first', 'error');
+                return;
+            }
+            
+            try {
+                showResult('pruningList', 'Loading pruning schedule...', 'loading');
+                
+                let url = supabaseUrl + '/rest/v1/pruning?select=*,all_plants(common_name)';
+                if (filter === 'needs') {
+                    url += '&needs_pruning=eq.true';
+                }
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey
+                    }
+                });
+                
+                if (response.ok) {
+                    const schedules = await response.json();
+                    let scheduleHtml = '<h3>Pruning Schedule:</h3>';
+                    
+                    if (schedules.length === 0) {
+                        scheduleHtml += '<p>No pruning schedules found. Add some plants to the pruning schedule!</p>';
+                    } else {
+                        schedules.forEach(function(schedule) {
+                            scheduleHtml += '<div class="plant-card">';
+                            scheduleHtml += '<h3>' + schedule.all_plants.common_name + '</h3>';
+                            if (schedule.pruning_season) {
+                                scheduleHtml += '<p>Season: ' + schedule.pruning_season + '</p>';
+                            }
+                            if (schedule.suggested_date) {
+                                scheduleHtml += '<p>Suggested Date: ' + new Date(schedule.suggested_date).toLocaleDateString() + '</p>';
+                            }
+                            if (schedule.blooms_on) {
+                                scheduleHtml += '<p>Blooms On: ' + schedule.blooms_on + '</p>';
+                            }
+                            if (schedule.notes) {
+                                scheduleHtml += '<p>Notes: ' + schedule.notes + '</p>';
+                            }
+                            scheduleHtml += '<div class="badges">';
+                            if (schedule.needs_pruning) {
+                                scheduleHtml += '<span class="badge">✂️ Needs Pruning</span>';
+                            }
+                            scheduleHtml += '</div>';
+                            scheduleHtml += '</div>';
+                        });
+                    }
+                    
+                    document.getElementById('pruningList').innerHTML = scheduleHtml;
+                } else {
+                    showResult('pruningList', 'Could not load pruning data. Status: ' + response.status, 'error');
+                }
+            } catch (error) {
+                showResult('pruningList', '❌ Failed to load pruning schedule: ' + error.message, 'error');
+            }
+        }
+
+        function showAddPruningForm() {
+            const form = document.getElementById('addPruningForm');
+            if (form) {
+                form.style.display = 'block';
+            }
+            loadPlantsForPruning();
+        }
+
+        function hideAddPruningForm() {
+            const form = document.getElementById('addPruningForm');
+            if (form) {
+                form.style.display = 'none';
+            }
+        }
+
+        async function addPruningSchedule() {
+            const plantId = document.getElementById('pruningPlant').value;
+            const needsPruning = document.getElementById('pruningNeeded').checked;
+            const season = document.getElementById('pruningSeason').value;
+            const date = document.getElementById('pruningDate').value;
+            const bloomsOn = document.getElementById('bloomsOn').value;
+            const notes = document.getElementById('pruningNotes').value.trim();
+            
+            if (!plantId) {
+                showResult('pruningAddResult', 'Please select a plant', 'error');
+                return;
+            }
+            
+            if (!supabaseUrl || !supabaseKey) {
+                showResult('pruningAddResult', 'Please configure database connection first', 'error');
+                return;
+            }
+            
+            try {
+                showResult('pruningAddResult', 'Adding pruning schedule...', 'loading');
+                
+                const pruningData = {
+                    plant_id: parseInt(plantId),
+                    needs_pruning: needsPruning,
+                    pruning_season: season || null,
+                    suggested_date: date || null,
+                    blooms_on: bloomsOn || null,
+                    notes: notes || null
+                };
+                
+                const response = await fetch(supabaseUrl + '/rest/v1/pruning', {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(pruningData)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error('HTTP ' + response.status + ': ' + errorText);
+                }
+                
+                showResult('pruningAddResult', '✅ Successfully added pruning schedule!', 'success');
+                
+                // Clear form
+                document.getElementById('pruningPlant').value = '';
+                document.getElementById('pruningNeeded').checked = true;
+                document.getElementById('pruningSeason').value = '';
+                document.getElementById('pruningDate').value = '';
+                document.getElementById('bloomsOn').value = '';
+                document.getElementById('pruningNotes').value = '';
+                
+                // Reload schedule
+                loadPruningSchedule('all');
+                
+            } catch (error) {
+                showResult('pruningAddResult', '❌ Failed to add pruning schedule: ' + error.message, 'error');
             }
         }
 
