@@ -89,10 +89,6 @@
             background: rgba(255,255,255,0.2);
         }
         
-        .nav-item:last-child {
-            border-bottom: none;
-        }
-        
         .content {
             padding: 15px;
             height: 100vh;
@@ -156,10 +152,6 @@
         
         .btn:hover {
             transform: translateY(-2px);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
         }
         
         .plant-card {
@@ -226,12 +218,6 @@
             border: 1px solid #f5c6cb;
         }
         
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-        
         .setup-form {
             background: #fff3cd;
             padding: 12px;
@@ -274,10 +260,6 @@
             background: #f8fff9;
         }
         
-        .hidden {
-            display: none;
-        }
-        
         h2 {
             margin-bottom: 15px;
             color: #333;
@@ -295,9 +277,6 @@
             <div class="nav">
                 <button class="nav-item active" onclick="showSection('add')">🌱 Add Plant</button>
                 <button class="nav-item" onclick="showSection('varieties')">🌿 Varieties</button>
-                <button class="nav-item" onclick="showSection('sow')">📝 Sow</button>
-                <button class="nav-item" onclick="showSection('calendar')">📅 Calendar</button>
-                <button class="nav-item" onclick="showSection('pruning')">✂️ Pruning</button>
                 <button class="nav-item" onclick="showSection('view')">👁️ View</button>
                 <button class="nav-item" onclick="showSection('setup')">⚙️ Setup</button>
             </div>
@@ -309,7 +288,7 @@
                 <div id="setup" class="section">
                     <div class="setup-form">
                         <h3>🔧 Database Connection</h3>
-                        <p>Enter your Supabase credentials once to connect to your garden database:</p>
+                        <p>Enter your Supabase credentials:</p>
                     </div>
                     
                     <div class="form-group">
@@ -393,7 +372,7 @@
                     
                     <div class="form-group">
                         <label for="varietyName">Variety Name</label>
-                        <input type="text" id="varietyName" placeholder="e.g., Cherokee Purple, Genovese, Brandywine">
+                        <input type="text" id="varietyName" placeholder="e.g., Cherokee Purple, Genovese">
                     </div>
                     
                     <div class="form-group">
@@ -407,65 +386,14 @@
                     
                     <div id="varietiesList" style="margin-top: 20px;"></div>
                 </div>
-                
-                <!-- Sowing Section -->
-                <div id="sow" class="section">
-                    <h2>📝 Record Sowing</h2>
-                    
-                    <div class="quick-actions">
-                        <button class="quick-btn" onclick="setTodayDate()">📅 Today</button>
-                        <button class="quick-btn" onclick="setYesterdayDate()">📅 Yesterday</button>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="sowingDate">Sowing Date</label>
-                        <input type="date" id="sowingDate">
-                    </div>
-                    
-                    <button class="btn" onclick="recordSowing()">📝 Record Sowing</button>
-                    
-                    <div id="sowResult"></div>
-                </div>
-                
-                <!-- Calendar Section -->
-                <div id="calendar" class="section">
-                    <h2>📅 Sowing Calendar</h2>
-                    
-                    <div class="setup-form">
-                        <h3>🌡️ Quick Frost Date Setup</h3>
-                        <p>Enter your area's average last frost date:</p>
-                        <div style="display: flex; gap: 10px; align-items: end;">
-                            <div style="flex: 1;">
-                                <input type="date" id="quickFrostDate" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 8px;">
-                            </div>
-                            <button onclick="calculateSowingDates()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; white-space: nowrap;">Calculate</button>
-                        </div>
-                    </div>
-                    
-                    <div id="calendarList"></div>
-                </div>
-                
-                <!-- Pruning Section -->
-                <div id="pruning" class="section">
-                    <h2>✂️ Pruning Schedule</h2>
-                    
-                    <div class="quick-actions">
-                        <button class="quick-btn" onclick="loadPruningSchedule('all')">All Plants</button>
-                        <button class="quick-btn" onclick="loadPruningSchedule('needs')">Needs Pruning</button>
-                    </div>
-                    
-                    <div id="pruningList"></div>
-                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Global variables
         let supabaseUrl = 'https://gztgrmgspbaurpyvrweq.supabase.co';
         let supabaseKey = '';
 
-        // Initialize when page loads
         window.addEventListener('load', function() {
             const savedUrl = localStorage.getItem('supabaseUrl');
             const savedKey = localStorage.getItem('supabaseKey');
@@ -681,14 +609,9 @@
                 
                 let debugInfo = 'URL: ' + url + '\n';
                 debugInfo += 'Status: ' + response.status + ' ' + response.statusText + '\n';
-                debugInfo += 'Content-Type: ' + response.headers.get('content-type') + '\n\n';
                 
                 const responseText = await response.text();
-                debugInfo += 'Raw Response (' + responseText.length + ' chars):\n' + responseText.substring(0, 500);
-                
-                if (responseText.length > 500) {
-                    debugInfo += '\n... (truncated)';
-                }
+                debugInfo += 'Response: ' + responseText.substring(0, 500);
                 
                 document.getElementById('plantsList').innerHTML = '<pre style="background: #f8f9fa; padding: 12px; border-radius: 8px; font-size: 10px; overflow-x: auto; white-space: pre-wrap;">' + debugInfo + '</pre>';
                 
@@ -699,7 +622,7 @@
 
         async function testConnection() {
             if (!supabaseUrl || !supabaseKey) {
-                showResult('varietyResult', '❌ Missing database credentials. Please go to Setup tab and enter your Supabase URL and API key.', 'error');
+                showResult('varietyResult', '❌ Missing database credentials. Please go to Setup tab first.', 'error');
                 return;
             }
             
@@ -714,18 +637,18 @@
                 });
                 
                 if (!response.ok) {
-                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                    throw new Error('HTTP ' + response.status);
                 }
                 
                 const result = await response.json();
-                showResult('varietyResult', '✅ Connection successful! Found ' + result.length + ' plants in database.', 'success');
+                showResult('varietyResult', '✅ Connection successful! Found ' + result.length + ' plants.', 'success');
                 
                 setTimeout(function() {
                     loadPlantsForDropdowns();
                 }, 1000);
                 
             } catch (error) {
-                showResult('varietyResult', '❌ Connection failed: ' + error.message + '. Please check your credentials in Setup.', 'error');
+                showResult('varietyResult', '❌ Connection failed: ' + error.message, 'error');
             }
         }
 
@@ -744,7 +667,7 @@
                 });
                 
                 if (!response.ok) {
-                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                    throw new Error('HTTP ' + response.status);
                 }
                 
                 const plants = await response.json();
@@ -754,18 +677,18 @@
                     varietySelect.innerHTML = '<option value="">Choose a plant...</option>';
                     
                     if (plants.length === 0) {
-                        varietySelect.innerHTML += '<option value="" disabled>No plants found - add some plants first!</option>';
-                        showResult('varietyResult', 'No plants found. Please add some plants first in the Add Plant section.', 'error');
+                        varietySelect.innerHTML += '<option value="" disabled>No plants found</option>';
+                        showResult('varietyResult', 'No plants found. Add some plants first.', 'error');
                     } else {
                         plants.forEach(function(plant) {
                             varietySelect.innerHTML += '<option value="' + plant.id + '">' + plant.common_name + '</option>';
                         });
-                        showResult('varietyResult', 'Loaded ' + plants.length + ' plants. Select a plant to see its varieties.', 'success');
+                        showResult('varietyResult', 'Loaded ' + plants.length + ' plants successfully!', 'success');
                     }
                 }
                 
             } catch (error) {
-                showResult('varietyResult', '❌ Failed to load plants: ' + error.message + '. Please check your database connection in Setup.', 'error');
+                showResult('varietyResult', '❌ Failed to load plants: ' + error.message, 'error');
             }
         }
 
@@ -804,7 +727,7 @@
                     document.getElementById('varietiesList').innerHTML = varietiesHtml;
                 }
             } catch (error) {
-                document.getElementById('varietiesList').innerHTML = '<p>❌ Failed to load varieties: ' + error.message + '</p>';
+                document.getElementById('varietiesList').innerHTML = '<p>Failed to load varieties</p>';
             }
         }
 
@@ -830,3 +753,42 @@
                     plant_id: parseInt(plantId),
                     variety_name: varietyName,
                     sci_name: scientificName || null
+                };
+                
+                const response = await fetch(supabaseUrl + '/rest/v1/varieties', {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(varietyData)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error('HTTP ' + response.status + ': ' + errorText);
+                }
+                
+                showResult('varietyResult', '✅ Successfully added variety "' + varietyName + '"!', 'success');
+                
+                document.getElementById('varietyName').value = '';
+                document.getElementById('varietyScientific').value = '';
+                loadVarietiesForPlant();
+                
+            } catch (error) {
+                showResult('varietyResult', '❌ Failed to add variety: ' + error.message, 'error');
+            }
+        }
+
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                const className = type === 'loading' ? 'result' : 'result ' + type;
+                element.innerHTML = '<div class="' + className + '">' + message + '</div>';
+            }
+        }
+    </script>
+</body>
+</html>
